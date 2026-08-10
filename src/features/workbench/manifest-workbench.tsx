@@ -1,17 +1,31 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { manifestExamples, resourceInventoryExample } from '@/content/examples/resource-inventory'
-import { analyzeManifest } from '@/domain/parser/analyze-manifest'
+import {
+  brokenServiceSelectorExample,
+  manifestExamples,
+} from '@/content/examples/resource-inventory'
 import type {
   AnalysisDiagnostic,
   AnalysisResult,
   KubernetesResource,
+  ResourceId,
+  ResourceRelationship,
   ResourceScope,
+  SafeEvidenceItem,
   SourceRange,
 } from '@/domain/model/analysis'
+import { analyzeManifest } from '@/domain/parser/analyze-manifest'
+import { formatLabelMap } from '@/domain/selectors/equality-selector'
 import { ManifestEditor, type EditorJumpRequest } from '@/features/editor/manifest-editor'
+import {
+  buildRelationshipList,
+  buildTopologyGraph,
+  type RelationshipListItem,
+  type TopologyGraph,
+  type TopologyNodeStatus,
+} from '@/graph/adapter/relationship-graph'
 
 const analysisDelay = 250
 
@@ -21,6 +35,16 @@ const statusLabels: Readonly<Record<AnalysisResult['status'], string>> = {
   partial: 'Partial results',
   invalid: 'Input needs attention',
   limited: 'Safety limit reached',
+}
+
+type InspectorSelection =
+  | { readonly type: 'resource'; readonly id: ResourceId }
+  | { readonly type: 'relationship'; readonly id: string }
+  | { readonly type: 'diagnostic'; readonly id: string }
+
+interface TopologyFocusRequest {
+  readonly resourceId: ResourceId
+  readonly token: number
 }
 
 function plural(count: number, singular: string): string {
@@ -39,6 +63,19 @@ function scopeDescription(scope: ResourceScope): string {
   return scope.declaredNamespace
     ? `Scope unknown · Declared namespace: ${scope.declaredNamespace}`
     : 'Scope unknown'
+}
+
+function resourceIdentity(resource: KubernetesResource): string {
+  const group = resource.identity.apiGroup || 'core'
+  const scope = resource.identity.scope
+  const location =
+    scope.type === 'namespaced'
+      ? scope.namespace
+      : scope.type === 'cluster'
+        ? 'cluster'
+        : (scope.declaredNamespace ?? 'scope-unknown')
+
+  return `${group}/${resource.kind}/${location}/${resource.name}`
 }
 
 function supportDescription(resource: KubernetesResource): string {
@@ -61,13 +98,33 @@ function locationDescription(range: SourceRange | undefined, documentIndex?: num
     .join(' · ')
 }
 
+function statusPresentation(status: TopologyNodeStatus): { icon: string; label: string } {
+  switch (status) {
+    case 'error':
+      return { icon: '×', label: 'Error' }
+    case 'warning':
+      return { icon: '!', label: 'Warning' }
+    case 'info':
+      return { icon: 'i', label: 'Information' }
+    case 'missing':
+      return { icon: '?', label: 'Unresolved' }
+    case 'ok':
+      return { icon: '✓', label: 'No detected issues' }
+  }
+}
+
+function evidenceActionLabel(evidence: SafeEvidenceItem): string {
+  return evidence.kind === 'selector' ? 'View selector' : 'Compare workload labels'
+}
+
 interface ResourceCardProps {
   readonly resource: KubernetesResource
   readonly jumpDisabled: boolean
+  readonly onInspect: (resource: KubernetesResource) => void
   readonly onJump: (range: SourceRange) => void
 }
 
-function ResourceCard({ resource, jumpDisabled, onJump }: ResourceCardProps) {
+function ResourceCard({ resource, jumpDisabled, onInspect, onJump }: ResourceCardProps) {
   const jumpRange = resource.source.fieldRanges.get('metadata.name') ?? resource.source.range
 
   return (
@@ -90,17 +147,22 @@ function ResourceCard({ resource, jumpDisabled, onJump }: ResourceCardProps) {
             : ` · List item ${resource.source.listItemIndex + 1}`}
           {resource.source.range ? ` · Line ${resource.source.range.start.line}` : ''}
         </p>
-        {jumpRange ? (
-          <button
-            className="text-action mt-4"
-            disabled={jumpDisabled}
-            onClick={() => onJump(jumpRange)}
-            type="button"
-          >
-            View in YAML
-            <span aria-hidden="true">→</span>
+        <div className="action-row mt-3">
+          <button className="text-action" onClick={() => onInspect(resource)} type="button">
+            Inspect resource
           </button>
-        ) : null}
+          {jumpRange ? (
+            <button
+              className="text-action"
+              disabled={jumpDisabled}
+              onClick={() => onJump(jumpRange)}
+              type="button"
+            >
+              View in YAML
+              <span aria-hidden="true">→</span>
+            </button>
+          ) : null}
+        </div>
       </article>
     </li>
   )
@@ -109,15 +171,29 @@ function ResourceCard({ resource, jumpDisabled, onJump }: ResourceCardProps) {
 interface DiagnosticCardProps {
   readonly diagnostic: AnalysisDiagnostic
   readonly jumpDisabled: boolean
+  readonly onFocusTopology: (diagnostic: AnalysisDiagnostic) => void
+  readonly onInspect: (diagnostic: AnalysisDiagnostic) => void
   readonly onJump: (range: SourceRange) => void
 }
 
-function DiagnosticCard({ diagnostic, jumpDisabled, onJump }: DiagnosticCardProps) {
+function DiagnosticCard({
+  diagnostic,
+  jumpDisabled,
+  onFocusTopology,
+  onInspect,
+  onJump,
+}: DiagnosticCardProps) {
   const icon = diagnostic.severity === 'error' ? '×' : diagnostic.severity === 'warning' ? '!' : 'i'
+  const comparisonEvidence = diagnostic.evidence.filter(
+    (item) => item.kind === 'labels' && item.range,
+  )
 
   return (
     <li>
-      <article className={`issue-card issue-${diagnostic.severity}`}>
+      <article
+        className={`issue-card issue-${diagnostic.severity}`}
+        data-diagnostic-code={diagnostic.code}
+      >
         <div className="flex gap-3">
           <span aria-hidden="true" className="issue-icon">
             {icon}
@@ -126,27 +202,527 @@ function DiagnosticCard({ diagnostic, jumpDisabled, onJump }: DiagnosticCardProp
             <div className="flex flex-wrap items-center gap-2">
               <p className="font-semibold">{diagnostic.title}</p>
               <span className="issue-severity">{diagnostic.severity}</span>
+              {diagnostic.certainty !== 'definite' ? (
+                <span className="certainty-badge">{diagnostic.certainty}</span>
+              ) : null}
             </div>
             <p className="mt-2 text-sm leading-6 text-muted">{diagnostic.message}</p>
             <p className="mt-2 text-xs text-muted">
               <code>{diagnostic.code}</code> ·{' '}
               {locationDescription(diagnostic.range, diagnostic.documentIndex)}
             </p>
-            {diagnostic.range ? (
-              <button
-                className="text-action mt-3"
-                disabled={jumpDisabled}
-                onClick={() => onJump(diagnostic.range!)}
-                type="button"
-              >
-                View in YAML
-                <span aria-hidden="true">→</span>
-              </button>
+
+            {diagnostic.evidence.length > 0 ? (
+              <details className="issue-details">
+                <summary>Evidence and verification</summary>
+                <dl className="evidence-list">
+                  {diagnostic.evidence.map((item, index) => (
+                    <div key={`${item.label}:${index}`}>
+                      <dt>{item.label}</dt>
+                      <dd>
+                        <code>{item.value}</code>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                {diagnostic.verificationCommands.length > 0 ? (
+                  <ul aria-label="Verification commands" className="command-list">
+                    {diagnostic.verificationCommands.map((command) => (
+                      <li key={command}>
+                        <code>{command}</code>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </details>
             ) : null}
+
+            <div className="action-row mt-3">
+              {diagnostic.resourceIds.length > 0 ? (
+                <button
+                  className="text-action"
+                  disabled={jumpDisabled}
+                  onClick={() => onFocusTopology(diagnostic)}
+                  type="button"
+                >
+                  View in topology
+                </button>
+              ) : null}
+              <button className="text-action" onClick={() => onInspect(diagnostic)} type="button">
+                Inspect issue
+              </button>
+              {diagnostic.range ? (
+                <button
+                  className="text-action"
+                  disabled={jumpDisabled}
+                  onClick={() => onJump(diagnostic.range!)}
+                  type="button"
+                >
+                  {diagnostic.code === 'KG-SVC-001' ? 'View selector' : 'View in YAML'}
+                  <span aria-hidden="true">→</span>
+                </button>
+              ) : null}
+              {comparisonEvidence.map((evidence) => (
+                <button
+                  aria-label={`Compare workload labels: ${evidence.label}`}
+                  className="text-action"
+                  disabled={jumpDisabled}
+                  key={`${evidence.label}:${evidence.range?.start.offset}`}
+                  onClick={() => onJump(evidence.range!)}
+                  type="button"
+                >
+                  Compare workload labels
+                  <span aria-hidden="true">→</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </article>
     </li>
+  )
+}
+
+interface TopologyPanelProps {
+  readonly graph: TopologyGraph
+  readonly relationships: readonly ResourceRelationship[]
+  readonly relationshipList: readonly RelationshipListItem[]
+  readonly selected?: InspectorSelection
+  readonly view: 'map' | 'list'
+  readonly nodeRefs: React.MutableRefObject<Map<ResourceId, HTMLButtonElement>>
+  readonly onInspectRelationship: (id: string) => void
+  readonly onInspectResource: (id: ResourceId) => void
+  readonly onViewChange: (view: 'map' | 'list') => void
+}
+
+function TopologyPanel({
+  graph,
+  relationships,
+  relationshipList,
+  selected,
+  view,
+  nodeRefs,
+  onInspectRelationship,
+  onInspectResource,
+  onViewChange,
+}: TopologyPanelProps) {
+  const relationshipById = new Map(relationships.map((item) => [item.id, item]))
+  const selectedRelationship =
+    selected?.type === 'relationship' ? relationshipById.get(selected.id) : undefined
+  const highlightedResources = new Set<ResourceId>()
+
+  if (selected?.type === 'resource') {
+    highlightedResources.add(selected.id)
+  }
+
+  if (selectedRelationship) {
+    highlightedResources.add(selectedRelationship.source)
+    if (selectedRelationship.resolution.state === 'resolved') {
+      highlightedResources.add(selectedRelationship.resolution.target)
+    }
+  }
+
+  return (
+    <section aria-labelledby="topology-title" className="result-group topology-panel">
+      <div className="topology-heading">
+        <div>
+          <h4 id="topology-title">Topology</h4>
+          <p>Service-to-workload relationships inferred from supplied labels.</p>
+        </div>
+        <div aria-label="Topology view" className="view-switcher" role="group">
+          <button aria-pressed={view === 'map'} onClick={() => onViewChange('map')} type="button">
+            Map
+          </button>
+          <button aria-pressed={view === 'list'} onClick={() => onViewChange('list')} type="button">
+            Relationship list
+          </button>
+        </div>
+      </div>
+
+      {view === 'map' ? (
+        <div aria-label="Relationship topology map" className="topology-map">
+          <ul aria-label="Resource nodes" className="topology-resource-grid">
+            {graph.nodes
+              .filter((node) => node.type === 'resource')
+              .map((node) => {
+                if (node.type !== 'resource') {
+                  return null
+                }
+
+                const status = statusPresentation(node.status)
+                const selectedNode = highlightedResources.has(node.resourceId)
+
+                return (
+                  <li key={node.id}>
+                    <button
+                      aria-label={`${node.kind} ${node.scope}/${node.name}. ${status.label}. Inspect resource.`}
+                      aria-pressed={selectedNode}
+                      className={`topology-node topology-node-${node.status}`}
+                      data-topology-node={node.resourceId}
+                      onClick={() => onInspectResource(node.resourceId)}
+                      ref={(element) => {
+                        if (element) {
+                          nodeRefs.current.set(node.resourceId, element)
+                        } else {
+                          nodeRefs.current.delete(node.resourceId)
+                        }
+                      }}
+                      type="button"
+                    >
+                      <span className="topology-node-kind">{node.kind}</span>
+                      <strong>{node.name}</strong>
+                      <span className="topology-node-scope">{node.scope}</span>
+                      <span className="topology-node-status">
+                        <span aria-hidden="true">{status.icon}</span> {status.label}
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+          </ul>
+
+          {graph.edges.length > 0 ? (
+            <ol aria-label="Topology connections" className="topology-connections">
+              {graph.edges.map((edge) => {
+                const source = graph.nodes.find((node) => node.id === edge.source)
+                const target = graph.nodes.find((node) => node.id === edge.target)
+                const relationship = relationshipById.get(edge.relationshipId)
+
+                if (!source || source.type !== 'resource' || !target || !relationship) {
+                  return null
+                }
+
+                return (
+                  <li
+                    className={`topology-connection topology-connection-${edge.resolution}`}
+                    data-relationship-id={edge.relationshipId}
+                    key={edge.id}
+                  >
+                    <span className="connection-resource">
+                      <small>{source.kind}</small>
+                      <strong>{source.name}</strong>
+                    </span>
+                    <button
+                      aria-label={`Inspect relationship. ${relationship.evidence.summary}`}
+                      className="connection-edge"
+                      onClick={() => onInspectRelationship(edge.relationshipId)}
+                      type="button"
+                    >
+                      <span aria-hidden="true">{edge.resolution === 'missing' ? '┄!' : '┄→'}</span>
+                      <small>{edge.label}</small>
+                    </button>
+                    {target.type === 'missing' ? (
+                      <button
+                        className="connection-resource connection-missing"
+                        onClick={() => onInspectRelationship(edge.relationshipId)}
+                        type="button"
+                      >
+                        <small>Unresolved placeholder</small>
+                        <strong>{target.name}</strong>
+                      </button>
+                    ) : (
+                      <button
+                        className="connection-resource"
+                        onClick={() => onInspectResource(target.resourceId)}
+                        type="button"
+                      >
+                        <small>{target.kind}</small>
+                        <strong>{target.name}</strong>
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
+            </ol>
+          ) : (
+            <p className="topology-empty">No supported relationships were found in this input.</p>
+          )}
+        </div>
+      ) : (
+        <div aria-label="Semantic relationship list" className="relationship-list">
+          {relationshipList.length > 0 ? (
+            <ol>
+              {relationshipList.map((item) => (
+                <li data-relationship-id={item.id} key={item.id}>
+                  <button onClick={() => onInspectRelationship(item.id)} type="button">
+                    <span
+                      className={`relationship-state relationship-state-${item.state}`}
+                      aria-hidden="true"
+                    >
+                      {item.state === 'resolved' ? '✓' : '!'}
+                    </span>
+                    <span>
+                      <strong>
+                        {item.state === 'resolved' ? 'Resolved match' : 'No supplied match'}
+                      </strong>
+                      <span>{item.summary}</span>
+                      <small>selects · inferred · {item.state}</small>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="topology-empty">No supported relationships were found in this input.</p>
+          )}
+        </div>
+      )}
+    </section>
+  )
+}
+
+interface InspectorProps {
+  readonly analysis: AnalysisResult
+  readonly selection?: InspectorSelection
+  readonly onInspectRelationship: (id: string) => void
+  readonly onJump: (range: SourceRange) => void
+}
+
+function Inspector({ analysis, selection, onInspectRelationship, onJump }: InspectorProps) {
+  const resourceById = new Map(analysis.resources.map((resource) => [resource.id, resource]))
+
+  if (!selection) {
+    return (
+      <section aria-labelledby="inspector-title" className="inspector-panel result-group">
+        <div className="result-group-heading">
+          <h4 id="inspector-title">Inspector</h4>
+        </div>
+        <p className="inspector-empty">
+          Select a topology node, connection, resource, or issue to inspect its evidence.
+        </p>
+      </section>
+    )
+  }
+
+  if (selection.type === 'resource') {
+    const resource = resourceById.get(selection.id)
+
+    if (!resource) {
+      return null
+    }
+
+    const workload = analysis.index.workloadLabels.byResource.get(resource.id)
+    const relatedRelationships = analysis.relationships.filter(
+      (relationship) =>
+        relationship.source === resource.id ||
+        (relationship.resolution.state === 'resolved' &&
+          relationship.resolution.target === resource.id),
+    )
+    const relatedDiagnostics = analysis.diagnostics.filter((diagnostic) =>
+      diagnostic.resourceIds.includes(resource.id),
+    )
+    const jumpRange = resource.source.fieldRanges.get('metadata.name') ?? resource.source.range
+
+    return (
+      <section aria-labelledby="inspector-title" className="inspector-panel result-group">
+        <div className="inspector-heading">
+          <div>
+            <p className="inspector-kicker">Resource</p>
+            <h4 id="inspector-title">
+              {resource.kind} {resource.name}
+            </h4>
+          </div>
+          <span className="support-badge">{supportDescription(resource)}</span>
+        </div>
+        <dl className="inspector-facts">
+          <div>
+            <dt>Identity</dt>
+            <dd>
+              <code>{resourceIdentity(resource)}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>Scope</dt>
+            <dd>{scopeDescription(resource.identity.scope)}</dd>
+          </div>
+          {workload ? (
+            <div>
+              <dt>{workload.source === 'pod' ? 'Pod labels' : 'Pod-template labels'}</dt>
+              <dd>
+                <code>{formatLabelMap(workload.labels)}</code>
+              </dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>Connections</dt>
+            <dd>{plural(relatedRelationships.length, 'relationship')}</dd>
+          </div>
+          <div>
+            <dt>Issues</dt>
+            <dd>{plural(relatedDiagnostics.length, 'issue')}</dd>
+          </div>
+        </dl>
+        {relatedRelationships.length > 0 ? (
+          <ul aria-label="Related relationships" className="inspector-links">
+            {relatedRelationships.map((relationship) => (
+              <li key={relationship.id}>
+                <button onClick={() => onInspectRelationship(relationship.id)} type="button">
+                  {relationship.evidence.summary}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {jumpRange ? (
+          <button className="text-action mt-3" onClick={() => onJump(jumpRange)} type="button">
+            View resource in YAML <span aria-hidden="true">→</span>
+          </button>
+        ) : null}
+      </section>
+    )
+  }
+
+  if (selection.type === 'relationship') {
+    const relationship = analysis.relationships.find((item) => item.id === selection.id)
+
+    if (!relationship) {
+      return null
+    }
+
+    const relatedDiagnostic = analysis.diagnostics.find((diagnostic) =>
+      diagnostic.relationshipIds.includes(relationship.id),
+    )
+    const state = relationship.resolution.state
+
+    return (
+      <section aria-labelledby="inspector-title" className="inspector-panel result-group">
+        <div className="inspector-heading">
+          <div>
+            <p className="inspector-kicker">Relationship</p>
+            <h4 id="inspector-title">Service selects workload</h4>
+          </div>
+          <span className={`relationship-state-label relationship-state-${state}`}>
+            {state === 'resolved' ? '✓ Resolved' : '! No supplied match'}
+          </span>
+        </div>
+        <p className="inspector-summary">{relationship.evidence.summary}</p>
+        <dl className="inspector-facts">
+          <div>
+            <dt>Certainty</dt>
+            <dd>Inferred from labels in the supplied manifests</dd>
+          </div>
+          <div>
+            <dt>Service selector</dt>
+            <dd>
+              <code>{formatLabelMap(relationship.evidence.selector)}</code>
+            </dd>
+          </div>
+        </dl>
+        <p className="inspector-explanation">
+          Services select Pods by labels. A connection to a Deployment is inferred through that
+          Deployment&apos;s Pod-template labels; the Service does not select the Deployment object.
+        </p>
+        <div className="action-row mt-3">
+          {relationship.evidence.sourceRange ? (
+            <button
+              className="text-action"
+              onClick={() => onJump(relationship.evidence.sourceRange!)}
+              type="button"
+            >
+              View selector <span aria-hidden="true">→</span>
+            </button>
+          ) : null}
+          {relationship.evidence.targetRange ? (
+            <button
+              className="text-action"
+              onClick={() => onJump(relationship.evidence.targetRange!)}
+              type="button"
+            >
+              View workload labels <span aria-hidden="true">→</span>
+            </button>
+          ) : null}
+          {relationship.evidence.comparisons.map((comparison) => {
+            const target = resourceById.get(comparison.target)
+
+            return comparison.range ? (
+              <button
+                aria-label={`Compare workload labels: ${target?.kind ?? 'workload'} ${target?.name ?? ''}`}
+                className="text-action"
+                key={comparison.target}
+                onClick={() => onJump(comparison.range!)}
+                type="button"
+              >
+                Compare workload labels <span aria-hidden="true">→</span>
+              </button>
+            ) : null
+          })}
+        </div>
+        {relatedDiagnostic?.verificationCommands.length ? (
+          <div className="inspector-commands">
+            <h5>Verify in a cluster</h5>
+            <ul className="command-list">
+              {relatedDiagnostic.verificationCommands.map((command) => (
+                <li key={command}>
+                  <code>{command}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
+    )
+  }
+
+  const diagnostic = analysis.diagnostics.find((item) => item.id === selection.id)
+
+  if (!diagnostic) {
+    return null
+  }
+
+  return (
+    <section aria-labelledby="inspector-title" className="inspector-panel result-group">
+      <div className="inspector-heading">
+        <div>
+          <p className="inspector-kicker">Issue · {diagnostic.code}</p>
+          <h4 id="inspector-title">{diagnostic.title}</h4>
+        </div>
+        <span className={`relationship-state-label issue-label-${diagnostic.severity}`}>
+          {diagnostic.severity} · {diagnostic.certainty}
+        </span>
+      </div>
+      <p className="inspector-summary">{diagnostic.message}</p>
+      {diagnostic.whyItMatters ? (
+        <p className="inspector-explanation">{diagnostic.whyItMatters}</p>
+      ) : null}
+      {diagnostic.evidence.length > 0 ? (
+        <dl className="evidence-list inspector-evidence">
+          {diagnostic.evidence.map((evidence, index) => (
+            <div key={`${evidence.label}:${index}`}>
+              <dt>{evidence.label}</dt>
+              <dd>
+                <code>{evidence.value}</code>
+                {evidence.range ? (
+                  <button
+                    className="text-action"
+                    onClick={() => onJump(evidence.range!)}
+                    type="button"
+                  >
+                    {evidenceActionLabel(evidence)} <span aria-hidden="true">→</span>
+                  </button>
+                ) : null}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {diagnostic.verificationCommands.length > 0 ? (
+        <div className="inspector-commands">
+          <h5>Verify in a cluster</h5>
+          <ul className="command-list">
+            {diagnostic.verificationCommands.map((command) => (
+              <li key={command}>
+                <code>{command}</code>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {diagnostic.possibleDirection ? (
+        <p className="possible-direction">
+          <strong>Possible direction:</strong> {diagnostic.possibleDirection}
+        </p>
+      ) : null}
+    </section>
   )
 }
 
@@ -158,17 +734,28 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
   const [source, setSource] = useState(initialSource)
   const [analysis, setAnalysis] = useState(() => analyzeManifest(initialSource))
   const [analyzedSource, setAnalyzedSource] = useState(initialSource)
-  const [selectedExampleId, setSelectedExampleId] = useState(resourceInventoryExample.id)
+  const [selectedExampleId, setSelectedExampleId] = useState(brokenServiceSelectorExample.id)
   const [loadedExampleId, setLoadedExampleId] = useState<string>()
   const [jumpRequest, setJumpRequest] = useState<EditorJumpRequest>()
+  const [topologyFocusRequest, setTopologyFocusRequest] = useState<TopologyFocusRequest>()
+  const [topologyView, setTopologyView] = useState<'map' | 'list'>('map')
+  const [selection, setSelection] = useState<InspectorSelection>()
+  const nodeRefs = useRef(new Map<ResourceId, HTMLButtonElement>())
 
   const selectedExample = useMemo(
     () =>
       manifestExamples.find((example) => example.id === selectedExampleId) ??
-      resourceInventoryExample,
+      brokenServiceSelectorExample,
     [selectedExampleId],
   )
-
+  const topology = useMemo(
+    () => buildTopologyGraph(analysis.resources, analysis.relationships, analysis.diagnostics),
+    [analysis],
+  )
+  const relationshipList = useMemo(
+    () => buildRelationshipList(analysis.relationships),
+    [analysis.relationships],
+  )
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setAnalysis(analyzeManifest(source))
@@ -178,11 +765,20 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
     return () => window.clearTimeout(timer)
   }, [source])
 
+  useEffect(() => {
+    if (!topologyFocusRequest) {
+      return
+    }
+
+    nodeRefs.current.get(topologyFocusRequest.resourceId)?.focus()
+  }, [topologyFocusRequest])
+
   const isAnalyzing = source !== analyzedSource
 
   function loadExample(): void {
     setSource(selectedExample.source)
     setLoadedExampleId(selectedExample.id)
+    setSelection(undefined)
   }
 
   function resetExample(): void {
@@ -190,6 +786,7 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
 
     if (loadedExample) {
       setSource(loadedExample.source)
+      setSelection(undefined)
     }
   }
 
@@ -197,9 +794,24 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
     setJumpRequest((current) => ({ range, token: (current?.token ?? 0) + 1 }))
   }
 
+  function focusTopology(diagnostic: AnalysisDiagnostic): void {
+    const resourceId = diagnostic.resourceIds[0]
+
+    if (!resourceId) {
+      return
+    }
+
+    setTopologyView('map')
+    setSelection({ type: 'diagnostic', id: diagnostic.id })
+    setTopologyFocusRequest((current) => ({
+      resourceId,
+      token: (current?.token ?? 0) + 1,
+    }))
+  }
+
   const statusText = isAnalyzing
     ? 'Analyzing…'
-    : `${statusLabels[analysis.status]}. ${plural(analysis.summary.resources, 'resource')}, ${plural(analysis.summary.errors, 'error')}, and ${plural(analysis.summary.warnings, 'warning')}.`
+    : `${statusLabels[analysis.status]}. ${plural(analysis.summary.resources, 'resource')}, ${plural(analysis.summary.errors, 'error')}, ${plural(analysis.summary.warnings, 'warning')}, and ${plural(analysis.summary.relationships, 'relationship')}.`
 
   return (
     <div
@@ -245,7 +857,10 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
           <button
             className="toolbar-button"
             disabled={!source}
-            onClick={() => setSource('')}
+            onClick={() => {
+              setSource('')
+              setSelection(undefined)
+            }}
             type="button"
           >
             Clear
@@ -271,7 +886,10 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
           <ManifestEditor
             diagnostics={analysis.diagnostics}
             jumpRequest={jumpRequest}
-            onChange={setSource}
+            onChange={(value) => {
+              setSource(value)
+              setSelection(undefined)
+            }}
             value={source}
           />
         </section>
@@ -280,9 +898,11 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
           <div className="panel-heading results-heading">
             <div>
               <h3 className="text-lg font-semibold" id="analysis-results-title">
-                Resource inventory
+                Manifest analysis
               </h3>
-              <p className="mt-1 text-sm text-muted">Static facts from the supplied YAML.</p>
+              <p className="mt-1 text-sm text-muted">
+                Static relationships from the supplied YAML.
+              </p>
             </div>
             <span
               className={`analysis-state analysis-state-${isAnalyzing ? 'working' : analysis.status}`}
@@ -295,6 +915,10 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
             <div>
               <strong>{analysis.summary.resources}</strong>
               <span>Resources</span>
+            </div>
+            <div>
+              <strong>{analysis.summary.relationships}</strong>
+              <span>Relations</span>
             </div>
             <div>
               <strong>{analysis.summary.errors}</strong>
@@ -322,9 +946,23 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
                 <p>
                   {source.trim()
                     ? 'A Kubernetes resource needs apiVersion, kind, and metadata.name.'
-                    : 'Normalized resources and precise source locations will appear here.'}
+                    : 'Resources, relationships, and precise source evidence will appear here.'}
                 </p>
               </div>
+            ) : null}
+
+            {analysis.resources.length > 0 ? (
+              <TopologyPanel
+                graph={topology}
+                nodeRefs={nodeRefs}
+                onInspectRelationship={(id) => setSelection({ type: 'relationship', id })}
+                onInspectResource={(id) => setSelection({ type: 'resource', id })}
+                onViewChange={setTopologyView}
+                relationshipList={relationshipList}
+                relationships={analysis.relationships}
+                selected={selection}
+                view={topologyView}
+              />
             ) : null}
 
             {analysis.diagnostics.length > 0 ? (
@@ -339,11 +977,24 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
                       diagnostic={item}
                       jumpDisabled={isAnalyzing}
                       key={item.id}
+                      onFocusTopology={focusTopology}
+                      onInspect={(diagnostic) =>
+                        setSelection({ type: 'diagnostic', id: diagnostic.id })
+                      }
                       onJump={jumpToSource}
                     />
                   ))}
                 </ol>
               </section>
+            ) : null}
+
+            {analysis.resources.length > 0 ? (
+              <Inspector
+                analysis={analysis}
+                onInspectRelationship={(id) => setSelection({ type: 'relationship', id })}
+                onJump={jumpToSource}
+                selection={selection}
+              />
             ) : null}
 
             {analysis.resources.length > 0 ? (
@@ -357,6 +1008,7 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
                     <ResourceCard
                       jumpDisabled={isAnalyzing}
                       key={resource.id}
+                      onInspect={(item) => setSelection({ type: 'resource', id: item.id })}
                       onJump={jumpToSource}
                       resource={resource}
                     />

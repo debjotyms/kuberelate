@@ -600,7 +600,7 @@ button {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   border-bottom: 1px solid var(--kg-line);
 }
 
@@ -764,6 +764,94 @@ button {
   text-decoration: none;
 }
 
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+
+.certainty-badge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0.28rem 0.48rem;
+  background: color-mix(in srgb, var(--kg-warning) 11%, transparent);
+  color: var(--kg-warning);
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.issue-details {
+  margin-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--kg-line) 75%, transparent);
+  padding-top: 0.65rem;
+  color: var(--kg-muted);
+  font-size: 0.75rem;
+}
+
+.issue-details summary {
+  width: fit-content;
+  border-radius: 0.35rem;
+  color: var(--kg-ink);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.issue-details summary:focus-visible,
+.view-switcher button:focus-visible,
+.topology-node:focus-visible,
+.connection-edge:focus-visible,
+.connection-resource:focus-visible,
+.relationship-list button:focus-visible,
+.inspector-links button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--kg-focus) 48%, transparent);
+  outline-offset: 2px;
+}
+
+.evidence-list {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+
+.evidence-list div {
+  min-width: 0;
+}
+
+.evidence-list dt {
+  color: var(--kg-muted);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.evidence-list dd {
+  margin-top: 0.15rem;
+  color: var(--kg-ink);
+}
+
+.command-list {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.command-list li {
+  min-width: 0;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.45rem;
+  padding: 0.5rem;
+  background: var(--kg-code);
+  color: var(--kg-code-ink);
+}
+
+.command-list code,
+.evidence-list code,
+.inspector-facts code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
 .issue-card {
   border-color: color-mix(in srgb, var(--kg-error) 30%, var(--kg-line));
   background: color-mix(in srgb, var(--kg-error) 4%, var(--kg-surface));
@@ -800,6 +888,409 @@ button {
   background: var(--kg-brand-strong);
 }
 
+.topology-panel {
+  overflow: hidden;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--kg-surface-muted) 34%, var(--kg-surface));
+}
+
+.topology-heading,
+.inspector-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.topology-heading {
+  padding: 0.9rem;
+  border-bottom: 1px solid var(--kg-line);
+}
+
+.topology-heading h4,
+.inspector-heading h4 {
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.topology-heading p {
+  margin-top: 0.25rem;
+  color: var(--kg-muted);
+  font-size: 0.72rem;
+  line-height: 1.2rem;
+}
+
+.view-switcher {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 0.2rem;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.55rem;
+  padding: 0.2rem;
+  background: var(--kg-surface);
+}
+
+.view-switcher button {
+  min-height: 2.15rem;
+  border: 0;
+  border-radius: 0.38rem;
+  padding: 0.35rem 0.55rem;
+  background: transparent;
+  color: var(--kg-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.view-switcher button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--kg-brand) 13%, var(--kg-surface));
+  color: var(--kg-brand-strong);
+}
+
+.topology-map,
+.relationship-list {
+  padding: 0.9rem;
+}
+
+.topology-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+  gap: 0.65rem;
+}
+
+.topology-node {
+  display: grid;
+  width: 100%;
+  min-height: 7.4rem;
+  align-content: start;
+  gap: 0.2rem;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.7rem;
+  padding: 0.75rem;
+  background: var(--kg-surface);
+  color: var(--kg-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.topology-node:hover,
+.topology-node[aria-pressed='true'] {
+  border-color: var(--kg-brand-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kg-brand) 13%, transparent);
+}
+
+.topology-node-error {
+  border-color: color-mix(in srgb, var(--kg-error) 48%, var(--kg-line));
+}
+
+.topology-node-warning {
+  border-color: color-mix(in srgb, var(--kg-warning) 52%, var(--kg-line));
+}
+
+.topology-node-kind,
+.topology-node-scope,
+.topology-node-status {
+  font-size: 0.66rem;
+}
+
+.topology-node-kind {
+  color: var(--kg-brand-strong);
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.topology-node-scope {
+  color: var(--kg-muted);
+}
+
+.topology-node-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
+  color: var(--kg-muted);
+  font-weight: 750;
+}
+
+.topology-node-warning .topology-node-status {
+  color: var(--kg-warning);
+}
+
+.topology-node-error .topology-node-status {
+  color: var(--kg-error);
+}
+
+.topology-connections {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--kg-line);
+}
+
+.topology-connection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.45rem;
+}
+
+.connection-resource,
+.connection-edge {
+  min-width: 0;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.55rem;
+  background: var(--kg-surface);
+  color: var(--kg-ink);
+  font: inherit;
+}
+
+.connection-resource {
+  display: grid;
+  align-content: center;
+  gap: 0.1rem;
+  padding: 0.55rem;
+  text-align: left;
+}
+
+button.connection-resource {
+  cursor: pointer;
+}
+
+.connection-resource small,
+.connection-edge small {
+  color: var(--kg-muted);
+  font-size: 0.6rem;
+}
+
+.connection-resource strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+}
+
+.connection-edge {
+  display: grid;
+  width: 6.25rem;
+  place-content: center;
+  justify-items: center;
+  padding: 0.4rem;
+  color: var(--kg-brand-strong);
+  cursor: pointer;
+}
+
+.connection-edge > span {
+  font-family: var(--kg-font-mono);
+  font-weight: 850;
+}
+
+.topology-connection-missing .connection-edge {
+  border-style: dashed;
+  border-color: var(--kg-warning);
+  color: var(--kg-warning);
+}
+
+.connection-missing {
+  border-style: dashed;
+  border-color: var(--kg-warning);
+  background: color-mix(in srgb, var(--kg-warning) 6%, var(--kg-surface));
+}
+
+.relationship-list > ol {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.relationship-list li > button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.65rem;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.65rem;
+  padding: 0.75rem;
+  background: var(--kg-surface);
+  color: var(--kg-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.relationship-list li > button > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 0.25rem;
+}
+
+.relationship-list li > button span span {
+  color: var(--kg-muted);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.relationship-list li > button small {
+  color: var(--kg-muted);
+  font-size: 0.64rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.relationship-state {
+  display: grid;
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--kg-success) 14%, transparent);
+  color: var(--kg-success);
+  font-weight: 900;
+}
+
+.relationship-state-missing {
+  background: color-mix(in srgb, var(--kg-warning) 14%, transparent);
+  color: var(--kg-warning);
+}
+
+.topology-empty,
+.inspector-empty {
+  padding: 1rem;
+  border: 1px dashed var(--kg-line);
+  border-radius: 0.65rem;
+  color: var(--kg-muted);
+  font-size: 0.78rem;
+  line-height: 1.3rem;
+  text-align: center;
+}
+
+.inspector-panel {
+  border: 1px solid var(--kg-line);
+  border-radius: 0.85rem;
+  padding: 0.95rem;
+  background: color-mix(in srgb, var(--kg-brand) 2.5%, var(--kg-surface));
+}
+
+.inspector-kicker {
+  margin-bottom: 0.18rem;
+  color: var(--kg-brand-strong);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.relationship-state-label {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0.3rem 0.5rem;
+  background: color-mix(in srgb, var(--kg-success) 13%, transparent);
+  color: var(--kg-success);
+  font-size: 0.62rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.relationship-state-label.relationship-state-missing,
+.issue-label-warning {
+  background: color-mix(in srgb, var(--kg-warning) 13%, transparent);
+  color: var(--kg-warning);
+}
+
+.issue-label-error {
+  background: color-mix(in srgb, var(--kg-error) 12%, transparent);
+  color: var(--kg-error);
+}
+
+.issue-label-info {
+  background: color-mix(in srgb, var(--kg-brand) 12%, transparent);
+  color: var(--kg-brand-strong);
+}
+
+.inspector-summary,
+.inspector-explanation,
+.possible-direction {
+  margin-top: 0.8rem;
+  font-size: 0.8rem;
+  line-height: 1.35rem;
+}
+
+.inspector-summary {
+  color: var(--kg-ink);
+}
+
+.inspector-explanation,
+.possible-direction {
+  color: var(--kg-muted);
+}
+
+.inspector-facts {
+  display: grid;
+  gap: 0;
+  margin-top: 0.8rem;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.65rem;
+}
+
+.inspector-facts > div {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 0.35fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.6rem;
+  border-bottom: 1px solid var(--kg-line);
+  font-size: 0.74rem;
+}
+
+.inspector-facts > div:last-child {
+  border-bottom: 0;
+}
+
+.inspector-facts dt {
+  color: var(--kg-muted);
+  font-weight: 750;
+}
+
+.inspector-links {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.inspector-links button {
+  width: 100%;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.5rem;
+  padding: 0.55rem;
+  background: var(--kg-surface);
+  color: var(--kg-brand-strong);
+  font: inherit;
+  font-size: 0.72rem;
+  line-height: 1.2rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inspector-evidence > div {
+  border-bottom: 1px solid var(--kg-line);
+  padding-bottom: 0.55rem;
+}
+
+.inspector-commands {
+  margin-top: 0.9rem;
+}
+
+.inspector-commands h5 {
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 @media (min-width: 64rem) {
   .workbench-grid {
     grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.92fr);
@@ -832,6 +1323,16 @@ button {
   .summary-grid span {
     font-size: 0.58rem;
   }
+
+  .topology-heading,
+  .inspector-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .view-switcher {
+    align-self: flex-start;
+  }
 }
 
 @media (max-width: 24rem) {
@@ -843,8 +1344,32 @@ button {
     border-bottom: 1px solid var(--kg-line);
   }
 
+  .summary-grid div:nth-child(3),
+  .summary-grid div:nth-child(4) {
+    border-bottom: 1px solid var(--kg-line);
+  }
+
   .summary-grid div:nth-child(2n) {
     border-right: 0;
+  }
+
+  .summary-grid div:last-child {
+    grid-column: 1 / -1;
+    border-right: 0;
+  }
+
+  .topology-connection {
+    grid-template-columns: 1fr;
+  }
+
+  .connection-edge {
+    width: 100%;
+    min-height: 3rem;
+  }
+
+  .inspector-facts > div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
   }
 }
 

@@ -1,6 +1,6 @@
 # KubeRelate Delivery Checklist
 
-> Current state: Milestone 2 YAML-to-resource-list implementation complete; public Pages activation deferred while private
+> Current state: Milestone 3 implementation complete locally; CI verification pending
 > Active milestone: **Milestone 3 — Service selector vertical slice**
 > Detailed rationale and architecture: [PLAN.md](./PLAN.md)
 
@@ -211,56 +211,67 @@ V0 bundle measurement (2026-08-10): the lazy analyzer/editor chunk is approximat
 
 ### Domain logic
 
-- [ ] Define equality-selector and label-match result types.
-- [ ] Extract Pod `metadata.labels`.
-- [ ] Extract Deployment `spec.template.metadata.labels`.
-- [ ] Add an inverted namespaced workload-label index.
-- [ ] Match all Service selector pairs as a subset of candidate labels.
-- [ ] Enforce same-namespace matching.
-- [ ] Skip selectorless and `ExternalName` Services.
-- [ ] Support one Service matching multiple supplied workloads.
-- [ ] Emit inferred relationships only for actual supplied matches.
-- [ ] Emit an unresolved selector relationship for no match.
-- [ ] Validate Deployment selector against template labels separately.
+- [x] Define equality-selector and label-match result types.
+- [x] Extract Pod `metadata.labels`.
+- [x] Extract Deployment `spec.template.metadata.labels`.
+- [x] Add an inverted namespaced workload-label index.
+- [x] Match all Service selector pairs as a subset of candidate labels.
+- [x] Enforce same-namespace matching.
+- [x] Skip selectorless and `ExternalName` Services.
+- [x] Support one Service matching multiple supplied workloads.
+- [x] Emit inferred relationships only for actual supplied matches.
+- [x] Emit an unresolved selector relationship for no match.
+- [x] Validate Deployment selector against template labels separately.
 
 ### Diagnostic and education
 
-- [ ] Add stable code `KG-SVC-001`.
-- [ ] Use warning severity and input-scoped certainty for no supplied match.
-- [ ] Show selector and comparison-label evidence without guessing a target.
-- [ ] Explain that Services select Pods, while Deployment edges are inferred through Pod templates.
-- [ ] Add namespace-correct `kubectl` and EndpointSlice verification commands.
-- [ ] Add working and broken Service examples with asserted contracts.
+- [x] Add stable code `KG-SVC-001`.
+- [x] Use warning severity and input-scoped certainty for no supplied match.
+- [x] Show selector and comparison-label evidence without guessing a target.
+- [x] Explain that Services select Pods, while Deployment edges are inferred through Pod templates.
+- [x] Add namespace-correct `kubectl` and EndpointSlice verification commands.
+- [x] Add working and broken Service examples with asserted contracts.
 
 ### UI flow
 
-- [ ] Show Service and workload resources.
-- [ ] Show resolved inferred connection or a non-resource unresolved placeholder.
-- [ ] Use icon/text/style—not color alone—for status and certainty.
-- [ ] Jump from issue to topology node and Service selector source.
-- [ ] Jump to comparison Pod-template labels where useful.
-- [ ] Add resource and relationship inspector basics.
-- [ ] Add full semantic relationship-list equivalent.
+- [x] Show Service and workload resources.
+- [x] Show resolved inferred connection or a non-resource unresolved placeholder.
+- [x] Use icon/text/style—not color alone—for status and certainty.
+- [x] Jump from issue to topology node and Service selector source.
+- [x] Jump to comparison Pod-template labels where useful.
+- [x] Add resource and relationship inspector basics.
+- [x] Add full semantic relationship-list equivalent.
 
 ### Required tests
 
-- [ ] Exact, subset, missing-key, and different-value selectors.
-- [ ] Extra workload labels.
-- [ ] Cross-namespace non-match.
-- [ ] Pod and Deployment-template targets.
-- [ ] Multiple valid targets.
-- [ ] Selectorless and `ExternalName` Services.
-- [ ] Invalid Deployment selector/template labels.
-- [ ] Diagnostic code/severity/certainty/evidence/commands/source ranges.
-- [ ] Stable relationship IDs and no false resolved edge.
-- [ ] Graph/list parity.
-- [ ] Issue-to-source component flow.
-- [ ] Playwright broken and working example flows.
-- [ ] axe and keyboard-only primary flow.
+- [x] Exact, subset, missing-key, and different-value selectors.
+- [x] Extra workload labels.
+- [x] Cross-namespace non-match.
+- [x] Pod and Deployment-template targets.
+- [x] Multiple valid targets.
+- [x] Selectorless and `ExternalName` Services.
+- [x] Invalid Deployment selector/template labels.
+- [x] Diagnostic code/severity/certainty/evidence/commands/source ranges.
+- [x] Stable relationship IDs and no false resolved edge.
+- [x] Graph/list parity.
+- [x] Issue-to-source component flow.
+- [x] Playwright broken and working example flows.
+- [x] axe and keyboard-only primary flow.
 
 **Milestone gate**
 
 - [ ] The exact first-slice acceptance flow in `PLAN.md` section 12 passes locally and in CI.
+
+Milestone 3 evidence: selector, LabelSelector, relationship, diagnostic, graph-adapter, component,
+and production-browser tests cover the exact broken fixture plus working, subset, missing-key,
+different-value, cross-namespace, Pod, Deployment-template, multiple-target, selectorless, and
+`ExternalName` cases. The local suite passes with 48 Vitest tests and eight Chromium static-export
+tests, including axe and keyboard-only issue-to-topology-to-source flows.
+The milestone gate remains open until those checks pass in GitHub Actions for the resulting revision.
+
+Milestone 3 bundle measurement (2026-08-10): the lazy analyzer/editor chunk is approximately
+562 KiB raw and 176 KiB gzip, a raw increase of about 7.1% from the V0 baseline and below the 10%
+investigation threshold. The complete static export remains approximately 1.4 MiB on disk.
 
 ---
 

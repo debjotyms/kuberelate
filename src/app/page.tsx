@@ -192,16 +192,16 @@ spec:
         >
           <div className="mx-auto w-full max-w-[94rem] px-3 py-16 sm:px-6 sm:py-20 lg:px-8">
             <div className="mx-auto mb-10 max-w-3xl text-center">
-              <p className="section-kicker">Milestone 2 · Resource inventory</p>
+              <p className="section-kicker">Milestone 3 · Service selector analysis</p>
               <h2
                 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
                 id="workbench-title"
               >
-                Turn YAML into a source-aware resource list.
+                See how your Service selectors connect.
               </h2>
               <p className="mt-4 text-lg leading-8 text-muted">
-                Paste multi-document manifests, inspect normalized identities, and follow an issue
-                directly back to its source. Relationship analysis arrives in the next milestone.
+                Paste multi-document manifests, inspect namespace-correct Pod and Deployment
+                Pod-template matches, and follow relationship evidence directly back to its source.
               </p>
             </div>
             <WorkbenchLoader />

@@ -3,7 +3,10 @@ import type {
   ResourceId,
   ResourceIndex,
   ResourceKey,
+  WorkloadLabelIndex,
+  WorkloadLabelTarget,
 } from '@/domain/model/analysis'
+import { extractWorkloadLabels } from '@/domain/resources/workload-labels'
 
 function append<K>(map: Map<K, ResourceId[]>, key: K, id: ResourceId): void {
   const current = map.get(key)
@@ -30,6 +33,33 @@ function namespaceIndexKey(resource: KubernetesResource): string {
   return scope.declaredNamespace ?? '@unknown'
 }
 
+export function namespacedLabelIndexKey(namespace: string, key: string, value: string): string {
+  return JSON.stringify([namespace, key, value])
+}
+
+function buildWorkloadLabelIndex(resources: readonly KubernetesResource[]): WorkloadLabelIndex {
+  const byResource = new Map<ResourceId, WorkloadLabelTarget>()
+  const byNamespace = new Map<string, ResourceId[]>()
+  const byNamespacedLabel = new Map<string, ResourceId[]>()
+
+  for (const resource of resources) {
+    const target = extractWorkloadLabels(resource)
+
+    if (!target) {
+      continue
+    }
+
+    byResource.set(resource.id, target)
+    append(byNamespace, target.namespace, resource.id)
+
+    for (const [key, value] of Object.entries(target.labels)) {
+      append(byNamespacedLabel, namespacedLabelIndexKey(target.namespace, key, value), resource.id)
+    }
+  }
+
+  return { byResource, byNamespace, byNamespacedLabel }
+}
+
 export function buildResourceIndex(resources: readonly KubernetesResource[]): ResourceIndex {
   const byKey = new Map<ResourceKey, ResourceId[]>()
   const byKind = new Map<string, ResourceId[]>()
@@ -43,7 +73,13 @@ export function buildResourceIndex(resources: readonly KubernetesResource[]): Re
     sourceOrder.push(resource.id)
   }
 
-  return { byKey, byKind, byNamespace, sourceOrder }
+  return {
+    byKey,
+    byKind,
+    byNamespace,
+    workloadLabels: buildWorkloadLabelIndex(resources),
+    sourceOrder,
+  }
 }
 
 export function emptyResourceIndex(): ResourceIndex {
@@ -51,6 +87,11 @@ export function emptyResourceIndex(): ResourceIndex {
     byKey: new Map(),
     byKind: new Map(),
     byNamespace: new Map(),
+    workloadLabels: {
+      byResource: new Map(),
+      byNamespace: new Map(),
+      byNamespacedLabel: new Map(),
+    },
     sourceOrder: [],
   }
 }

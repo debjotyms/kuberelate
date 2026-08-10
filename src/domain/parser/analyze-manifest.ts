@@ -12,6 +12,9 @@ import {
 } from 'yaml'
 
 import { buildResourceIndex, emptyResourceIndex } from '@/domain/indexes/resource-index'
+import { createDiagnostic } from '@/domain/diagnostics/diagnostic'
+import { deploymentSelectorDiagnostics } from '@/domain/diagnostics/rules/deployment-selector'
+import { serviceSelectorDiagnostics } from '@/domain/diagnostics/rules/service-selector'
 import {
   DEFAULT_ANALYSIS_LIMITS,
   type AnalysisDiagnostic,
@@ -27,6 +30,7 @@ import {
   type SourceRange,
 } from '@/domain/model/analysis'
 import { getResourceDefinition } from '@/domain/resources/registry'
+import { serviceSelectsWorkloadRelationships } from '@/domain/relationships/rules/service-selects-workload'
 
 import { findNodeAtPath, toSourceRange } from './source'
 
@@ -71,20 +75,7 @@ function firstMessageLine(message: string): string {
   return message.split('\n', 1)[0] ?? message
 }
 
-function diagnostic(
-  input: Omit<AnalysisDiagnostic, 'id' | 'resourceIds'> & {
-    readonly resourceIds?: readonly ResourceId[]
-  },
-): AnalysisDiagnostic {
-  const offset = input.range?.start.offset ?? 0
-  const documentPart = input.documentIndex === undefined ? 'global' : String(input.documentIndex)
-
-  return {
-    ...input,
-    id: `${input.code}:${documentPart}:${offset}`,
-    resourceIds: input.resourceIds ?? [],
-  }
-}
+const diagnostic = createDiagnostic
 
 function hashSource(source: string): string {
   let hash = 0x811c9dc5
@@ -176,6 +167,12 @@ function fieldRanges(
     ['kind', ['kind']],
     ['metadata.name', ['metadata', 'name']],
     ['metadata.namespace', ['metadata', 'namespace']],
+    ['metadata.labels', ['metadata', 'labels']],
+    ['spec.type', ['spec', 'type']],
+    ['spec.selector', ['spec', 'selector']],
+    ['spec.selector.matchLabels', ['spec', 'selector', 'matchLabels']],
+    ['spec.selector.matchExpressions', ['spec', 'selector', 'matchExpressions']],
+    ['spec.template.metadata.labels', ['spec', 'template', 'metadata', 'labels']],
   ]
 
   for (const [name, path] of paths) {
@@ -570,21 +567,26 @@ function resultFrom(
   analyzedDocuments: number,
 ): AnalysisResult {
   const index = buildResourceIndex(resources)
+  const relationships = serviceSelectsWorkloadRelationships(resources, index)
   const sortedDiagnostics = sortDiagnostics([
     ...diagnostics,
     ...duplicateDiagnostics(resources, index),
+    ...deploymentSelectorDiagnostics(resources),
+    ...serviceSelectorDiagnostics(resources, relationships),
   ])
 
   return {
     revision: hashSource(source),
     status: statusFor(source, resources, sortedDiagnostics),
     resources,
+    relationships,
     diagnostics: sortedDiagnostics,
     index,
     summary: {
       resources: resources.length,
       errors: sortedDiagnostics.filter((item) => item.severity === 'error').length,
       warnings: sortedDiagnostics.filter((item) => item.severity === 'warning').length,
+      relationships: relationships.length,
       documents,
       analyzedDocuments,
     },
@@ -611,9 +613,17 @@ export function analyzeManifest(
       revision: hashSource(source),
       status: 'limited',
       resources: [],
+      relationships: [],
       diagnostics: [message],
       index: emptyResourceIndex(),
-      summary: { resources: 0, errors: 1, warnings: 0, documents: 0, analyzedDocuments: 0 },
+      summary: {
+        resources: 0,
+        errors: 1,
+        warnings: 0,
+        relationships: 0,
+        documents: 0,
+        analyzedDocuments: 0,
+      },
     }
   }
 

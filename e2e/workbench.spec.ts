@@ -18,7 +18,9 @@ metadata:
   name: web
 `
 
-test('loads the example and exposes source-aware resources by keyboard', async ({ page }) => {
+test('explains a broken Service selector through topology and source by keyboard', async ({
+  page,
+}) => {
   await page.goto(appPath)
 
   const workbench = page.locator('#workbench')
@@ -32,26 +34,69 @@ test('loads the example and exposes source-aware resources by keyboard', async (
   await page.keyboard.press('Enter')
 
   await expect(workbench.locator('[data-analysis-status="valid"]')).toBeVisible()
-  await expect(workbench.locator('[data-resource-kind]')).toHaveCount(4)
-  await expect(workbench.locator('[data-resource-kind="StudyGuide"]')).toContainText('Generic kind')
+  await expect(workbench.locator('[data-resource-kind]')).toHaveCount(2)
+  await expect(workbench.locator('[data-diagnostic-code="KG-SVC-001"]')).toContainText(
+    'Service selector matches no supplied workload',
+  )
+  await expect(workbench.getByText('No matching workload')).toBeVisible()
   await expect(workbench.getByRole('status')).toContainText(
-    'Analysis complete. 4 resources, 0 errors, and 0 warnings.',
+    'Analysis complete. 2 resources, 0 errors, 1 warning, and 1 relationship.',
   )
 
-  const serviceCard = workbench.locator('[data-resource-kind="Service"]')
-  await serviceCard.getByRole('button', { name: 'View in YAML' }).focus()
+  const issue = workbench.locator('[data-diagnostic-code="KG-SVC-001"]')
+  await issue.getByRole('button', { name: 'View in topology' }).focus()
+  await page.keyboard.press('Enter')
+  const serviceNode = workbench.getByRole('button', {
+    name: /Service demo\/web\. Warning\. Inspect resource/,
+  })
+  await expect(serviceNode).toBeFocused()
+  await expect(
+    workbench.getByRole('region', { name: 'Service selector matches no supplied workload' }),
+  ).toContainText('kubectl get endpointslice -n demo')
+
+  await issue.getByRole('button', { name: 'View selector' }).focus()
   await page.keyboard.press('Enter')
   await expect(editor).toBeFocused()
 
   await page.keyboard.press(process.platform === 'darwin' ? 'Meta+f' : 'Control+f')
   await expect(page.locator('.cm-search input[name="search"]')).toBeVisible()
   await page.keyboard.press('Escape')
-  await page.keyboard.press('Tab')
-  await expect(
-    workbench.locator('[data-resource-kind="Namespace"]').getByRole('button', {
-      name: 'View in YAML',
-    }),
-  ).toBeFocused()
+
+  const a11y = await new AxeBuilder({ page }).include('#workbench').analyze()
+  expect(a11y.violations).toEqual([])
+})
+
+test('shows a working selector in the map and equivalent relationship list', async ({ page }) => {
+  await page.goto(appPath)
+
+  const workbench = page.locator('#workbench')
+  await workbench.getByLabel('Example').selectOption('working-service-selector')
+  await workbench.getByRole('button', { name: 'Load example' }).click()
+
+  await expect(workbench.locator('[data-analysis-status="valid"]')).toBeVisible()
+  await expect(workbench.locator('[data-diagnostic-code="KG-SVC-001"]')).toHaveCount(0)
+  await expect(workbench.getByRole('button', { name: /Inspect relationship\./ })).toContainText(
+    'selects · inferred',
+  )
+
+  await workbench.getByRole('button', { name: 'Relationship list' }).click()
+  const list = workbench.getByLabel('Semantic relationship list')
+  await expect(list.getByText('Resolved match')).toBeVisible()
+  await expect(list).toContainText(
+    'Service demo/web selects Pods represented by Deployment demo/web using app=web.',
+  )
+})
+
+test('keeps the resource inventory example available', async ({ page }) => {
+  await page.goto(appPath)
+
+  const workbench = page.locator('#workbench')
+  await workbench.getByLabel('Example').selectOption('resource-inventory')
+  await workbench.getByRole('button', { name: 'Load example' }).click()
+
+  await expect(workbench.locator('[data-analysis-status="valid"]')).toBeVisible()
+  await expect(workbench.locator('[data-resource-kind]')).toHaveCount(4)
+  await expect(workbench.locator('[data-resource-kind="StudyGuide"]')).toContainText('Generic kind')
 })
 
 test('keeps valid documents visible beside malformed YAML and recovers after correction', async ({
@@ -146,7 +191,7 @@ test('reflows the populated workbench at 320 CSS pixels without horizontal scrol
   const workbench = page.locator('#workbench')
   await workbench.getByRole('button', { name: 'Load example' }).click()
   await expect(workbench.locator('[data-analysis-status="valid"]')).toBeVisible()
-  await expect(workbench.locator('[data-resource-kind]')).toHaveCount(4)
+  await expect(workbench.locator('[data-resource-kind]')).toHaveCount(2)
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

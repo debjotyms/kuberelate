@@ -18,6 +18,10 @@ describe('HomePage', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Your manifests never leave your browser.')).toBeInTheDocument()
     expect(screen.getByText('Static evidence, not runtime guesses.')).toBeInTheDocument()
+    expect(screen.getByText('Milestone 3 · Service selector analysis')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'See how your Service selectors connect.' }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Primary navigation' })).toBeInTheDocument()
     expect(product.name).toBe('KubeRelate')
     expect(screen.getByRole('link', { name: 'KubeRelate home' })).toHaveAttribute('href', '/')

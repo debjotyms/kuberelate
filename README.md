@@ -10,9 +10,9 @@ learning tool. It is designed to make selectors, references, namespaces, ports, 
 storage dependencies easier to understand without connecting to a cluster or uploading YAML.
 
 > [!IMPORTANT]
-> KubeRelate is in early development. The V0 analyzer can turn multi-document YAML into a
-> source-aware resource inventory. Relationship analysis, diagnostics, and topology begin in
-> Milestone 3.
+> KubeRelate is in early development. The analyzer now explains the first complete relationship
+> slice: Service selectors compared with supplied Pods and Deployment Pod templates. Broader
+> Kubernetes relationship coverage is still in progress.
 
 ## Why KubeRelate
 
@@ -33,12 +33,15 @@ the evidence without pretending to know live cluster state.
 - Lazy-loaded CodeMirror YAML editor with search, history, inline parser markers, and source jumps
 - Deterministic multi-document parsing, normalization, scope-aware identity, and safety limits
 - Ordered resource and issue lists with partial-result recovery for malformed neighboring documents
+- Namespace-correct Service selector matching for Pods and Deployment Pod templates
+- Resolved and unresolved topology views with a full semantic relationship-list equivalent
+- Evidence-based `KG-SVC-001` guidance, source jumps, inspectors, and cluster verification commands
 
 The detailed [implementation plan](./PLAN.md) and [delivery checklist](./CHECKLIST.md) track current
-scope and evidence. Planned V1 work now continues with relationship analysis, diagnostics, topology
-and text views, and curated troubleshooting examples.
+scope and evidence. Planned V1 work now continues with reusable interactive topology, additional
+relationship rules, deterministic explanations, and curated troubleshooting examples.
 
-## Current V0 behavior
+## Current analyzer behavior
 
 - Parses up to 250 YAML documents and preserves one-based line/column source locations.
 - Normalizes up to 500 resources with stable occurrence IDs and canonical identities.
@@ -49,10 +52,17 @@ and text views, and curated troubleshooting examples.
   partial.
 - Enforces a 2 MiB source limit and bounded YAML alias expansion without changing editor content.
 - Keeps source text in React memory only and renders no Secret values outside the YAML editor.
+- Matches every non-empty Service selector pair as a subset of supplied Pod or Deployment
+  Pod-template labels in the same effective namespace.
+- Skips selectorless and `ExternalName` Services, supports multiple valid targets, and never invents
+  a resolved edge when no supplied workload matches.
+- Reports an unmatched selector as warning `KG-SVC-001` with input-scoped certainty, safe comparison
+  evidence, source ranges, and namespace-correct verification commands.
+- Validates a Deployment selector against its own Pod-template labels as a separate definite issue.
 
-V0 validates only the minimal Kubernetes resource envelope (`apiVersion`, `kind`, and
-`metadata.name`). It does not perform complete Kubernetes schema validation or infer relationships
-yet.
+The analyzer still validates only the minimal Kubernetes resource envelope (`apiVersion`, `kind`,
+and `metadata.name`); it does not perform complete Kubernetes schema validation. Relationship
+coverage is currently limited to the Service selector vertical slice.
 
 ## Privacy and analysis boundary
 

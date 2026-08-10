@@ -1,6 +1,6 @@
 # KubeRelate Implementation Plan
 
-> Status: Milestone 2 YAML-to-resource-list implementation complete; public Pages activation deferred while private
+> Status: Milestone 3 implementation complete locally; CI verification pending
 > Last updated: 2026-08-10
 > Companion tracker: [CHECKLIST.md](./CHECKLIST.md)
 
