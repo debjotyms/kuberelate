@@ -1,0 +1,11 @@
+.next/
+coverage/
+node_modules/
+next-env.d.ts
+out/
+playwright-report/
+test-results/
+blob-report/
+CHECKLIST.md
+PLAN.md
+package-lock.json

@@ -1,0 +1,40 @@
+name: Feature request
+description: Propose a focused capability aligned with the active milestone.
+title: 'feat: '
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user or Kubernetes-learning problem, not only a preferred implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should users be able to understand or accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Kubernetes semantics and evidence
+      description: Explain what is statically knowable and what still requires live-cluster verification.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: I checked the plan, checklist, and existing issues for related work.
+          required: true
+        - label: The proposal preserves browser-only processing and does not require sensitive data.
+          required: true

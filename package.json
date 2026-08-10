@@ -1,0 +1,72 @@
+{
+  "name": "kuberelate",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A privacy-first, browser-based Kubernetes manifest relationship analyzer.",
+  "license": "MIT",
+  "homepage": "https://github.com/debjotyms/kube-relate#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/debjotyms/kube-relate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/debjotyms/kube-relate/issues"
+  },
+  "keywords": [
+    "kubernetes",
+    "manifest",
+    "static-analysis",
+    "troubleshooting",
+    "visualization"
+  ],
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "packageManager": "npm@11.18.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run check:brand",
+    "check:brand": "node scripts/check-brand.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings=0",
+    "serve:e2e": "node scripts/serve-export.mjs",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:artifact": "playwright test",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.62.1",
+    "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.3",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.0.5",
+    "@vitest/coverage-v8": "4.1.10",
+    "axe-core": "4.13.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.0",
+    "eslint-config-prettier": "10.1.8",
+    "jsdom": "30.0.1",
+    "postcss": "8.5.26",
+    "prettier": "3.9.6",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vite": "8.2.1",
+    "vitest": "4.1.10"
+  }
+}
