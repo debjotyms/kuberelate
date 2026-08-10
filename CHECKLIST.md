@@ -1,7 +1,7 @@
 # KubeRelate Delivery Checklist
 
-> Current state: Milestone 1 repository implementation complete; first private CI run pending
-> Active milestone: **Milestone 1 — private CI verification and repository protection**
+> Current state: Milestone 1 foundation and private CI verification complete; public Pages activation deferred
+> Active milestone: **Milestone 1 — public Pages activation when repository visibility changes**
 > Detailed rationale and architecture: [PLAN.md](./PLAN.md)
 
 ## How to use this tracker
@@ -104,9 +104,9 @@ Status convention:
 - [x] Deploy the same tested artifact to the `github-pages` environment.
 - [x] Pin official actions and enable npm caching without caching `node_modules` or browser binaries.
 - [x] Verify a deliberately failing test returns a nonzero quality result and the job dependency chain blocks build/deployment.
-- [ ] Verify a green private `main` push completes quality, build, and E2E jobs successfully.
+- [x] Verify a green private `main` push completes quality, build, and E2E jobs successfully.
 - [ ] Enable Pages via Actions after the repository becomes public.
-- [ ] Require quality/build/E2E checks on `main` when repository settings allow it.
+- [x] Require quality/build/E2E checks on `main` when repository settings allow it.
 
 **Milestone gate**
 
@@ -115,9 +115,10 @@ Status convention:
 - [x] Only a fully green public `main` revision can reach the deploy job.
 - [ ] The public static shell works at the configured Pages URL and contains no prohibited legacy branding.
 
-The first private push must verify CI and make the required checks available for branch protection.
-Pages activation, deployment, and public-URL verification intentionally wait until the repository
-is made public.
+Private CI evidence: [initial `main` workflow run](https://github.com/debjotyms/kube-relate/actions/runs/31407802154).
+The `Quality`, `Static export`, and `Chromium smoke` checks are required on `main`; force pushes and
+branch deletion are disabled. Pages activation, deployment, and public-URL verification intentionally
+wait until the repository is made public.
 
 ---
 
