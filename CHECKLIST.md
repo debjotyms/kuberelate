@@ -303,6 +303,9 @@ contracts, Secret-safe projection, React Flow component flow, and production-bro
 resource/unresolved/namespace nodes, explicit/inferred/missing edges, both directions, graph/list
 parity, inspector focus, node and edge keyboard activation, reduced motion, axe, and the Pages base
 path. The local Node.js 24 gate passes with 58 Vitest tests and eight Chromium tests.
+GitHub Actions evidence: [CI / Pages run 31420204154](https://github.com/debjotyms/kuberelate/actions/runs/31420204154)
+passed Quality, Static export, and Chromium smoke for commit
+[`97bfaa6`](https://github.com/debjotyms/kuberelate/commit/97bfaa69cd9cd3acc7b3051441861cb448cbe987).
 
 Milestone 4 baseline (2026-08-11): `npm run measure:analyzer` processed all three built-in examples
 (1,511 source bytes) across 750 warmed samples on Node.js 24.16.0 with a 0.273 ms median and
