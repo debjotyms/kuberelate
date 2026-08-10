@@ -8,6 +8,11 @@ updates:
       time: '09:00'
       timezone: Asia/Dhaka
     open-pull-requests-limit: 5
+    allow:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-patch
     commit-message:
       prefix: chore(deps)
 
