@@ -46,13 +46,27 @@ test('explains a broken Service selector through topology and source by keyboard
   const issue = workbench.locator('[data-diagnostic-code="KG-SVC-001"]')
   await issue.getByRole('button', { name: 'View in topology' }).focus()
   await page.keyboard.press('Enter')
-  const serviceNode = workbench.getByRole('button', {
-    name: /Service demo\/web\. Warning\. Inspect resource/,
+  const serviceNode = workbench.getByRole('group', {
+    name: /Service demo\/web\. Warning\. 1 connection.*inspect this resource/i,
   })
   await expect(serviceNode).toBeFocused()
   await expect(
     workbench.getByRole('region', { name: 'Service selector matches no supplied workload' }),
   ).toContainText('kubectl get endpointslice -n demo')
+
+  await page.keyboard.press('Enter')
+  const resourceInspector = workbench.getByRole('region', { name: 'Service web' })
+  await expect(resourceInspector).toContainText('1 relationship')
+  await expect(resourceInspector.getByRole('heading', { name: 'Service web' })).toBeFocused()
+
+  const relationshipEdge = workbench.getByRole('group', {
+    name: /Service demo\/web selects no supplied Pod.*inferred relationship, missing/i,
+  })
+  await relationshipEdge.focus()
+  await page.keyboard.press('Space')
+  await expect(workbench.getByRole('region', { name: 'Service selects workload' })).toContainText(
+    'Inferred from labels in the supplied manifests',
+  )
 
   await issue.getByRole('button', { name: 'View selector' }).focus()
   await page.keyboard.press('Enter')
@@ -75,9 +89,25 @@ test('shows a working selector in the map and equivalent relationship list', asy
 
   await expect(workbench.locator('[data-analysis-status="valid"]')).toBeVisible()
   await expect(workbench.locator('[data-diagnostic-code="KG-SVC-001"]')).toHaveCount(0)
-  await expect(workbench.getByRole('button', { name: /Inspect relationship\./ })).toContainText(
-    'selects · inferred',
-  )
+  await expect(
+    workbench.getByRole('group', {
+      name: /selects Pods represented by Deployment demo\/web using app=web/i,
+    }),
+  ).toBeVisible()
+  await expect(workbench.locator('.topology-edge-label')).toContainText('selects · inferred')
+  await expect(workbench.getByRole('button', { name: 'Zoom in' })).toBeVisible()
+  await expect(workbench.getByRole('button', { name: 'Zoom out' })).toBeVisible()
+  await expect(workbench.getByRole('button', { name: 'Fit view' })).toBeVisible()
+
+  await workbench.getByRole('button', { name: 'Lay out graph top to bottom' }).click()
+  await expect(workbench.locator('.topology-canvas')).toHaveAttribute('data-graph-direction', 'TB')
+
+  await workbench
+    .getByRole('group', {
+      name: /selects Pods represented by Deployment demo\/web using app=web/i,
+    })
+    .click()
+  await expect(workbench.getByRole('button', { name: 'Focus selected' })).toBeEnabled()
 
   await workbench.getByRole('button', { name: 'Relationship list' }).click()
   const list = workbench.getByLabel('Semantic relationship list')
@@ -85,6 +115,7 @@ test('shows a working selector in the map and equivalent relationship list', asy
   await expect(list).toContainText(
     'Service demo/web selects Pods represented by Deployment demo/web using app=web.',
   )
+  await expect(list.getByRole('button')).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('keeps the resource inventory example available', async ({ page }) => {
@@ -167,6 +198,12 @@ stringData:
   }))
   expect(JSON.stringify(storage)).not.toContain(sentinel)
 
+  await workbench.getByRole('button', { name: 'Inspect resource' }).click()
+  const secretInspector = workbench.getByRole('region', { name: 'Secret demo' })
+  await expect(secretInspector).toContainText('Values hidden by design')
+  await expect(secretInspector).toContainText('Keys: token')
+  await expect(secretInspector).not.toContainText(sentinel)
+
   const validA11y = await new AxeBuilder({ page }).include('#workbench').analyze()
   expect(validA11y.violations).toEqual([])
 
@@ -174,6 +211,20 @@ stringData:
   const darkA11y = await new AxeBuilder({ page }).include('#workbench').analyze()
   expect(darkA11y.violations).toEqual([])
   await page.emulateMedia({ colorScheme: 'light' })
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect
+    .poll(() =>
+      workbench
+        .locator('.topology-canvas')
+        .evaluate(
+          (element) =>
+            element
+              .getAnimations({ subtree: true })
+              .filter((animation) => animation.playState === 'running').length,
+        ),
+    )
+    .toBe(0)
 
   await editor.fill('apiVersion: v1\nkind: Secret\nmetadata: [\n')
   await expect(workbench.locator('[data-analysis-status="invalid"]')).toBeVisible()

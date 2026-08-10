@@ -81,6 +81,7 @@ coverage is currently limited to the Service selector vertical slice.
 - React and strict TypeScript
 - Tailwind CSS with project-owned design tokens
 - CodeMirror 6, `yaml`, and `zod/mini`
+- React Flow, Dagre, and Zustand for the lazy interactive topology
 - Vitest and React Testing Library
 - Playwright and axe-core
 - GitHub Actions and GitHub Pages
@@ -104,19 +105,20 @@ Open `http://localhost:3000`.
 
 ## Quality commands
 
-| Command                 | Purpose                                                       |
-| ----------------------- | ------------------------------------------------------------- |
-| `npm run dev`           | Start the local Next.js development server                    |
-| `npm run build`         | Produce the static site in `out/`                             |
-| `npm run check`         | Run the complete non-browser local quality gate               |
-| `npm run lint`          | Run ESLint with Next.js and TypeScript rules                  |
-| `npm run typecheck`     | Generate Next.js route types and run strict TypeScript checks |
-| `npm run format`        | Format maintained source and configuration files              |
-| `npm run format:check`  | Verify formatting without changing files                      |
-| `npm run test`          | Run Vitest in watch mode                                      |
-| `npm run test:coverage` | Run unit and component tests with V8 coverage                 |
-| `npm run test:e2e`      | Build and test the production static export in Chromium       |
-| `npm run check:brand`   | Scan shipped source and output for prohibited legacy branding |
+| Command                    | Purpose                                                       |
+| -------------------------- | ------------------------------------------------------------- |
+| `npm run dev`              | Start the local Next.js development server                    |
+| `npm run build`            | Produce the static site in `out/`                             |
+| `npm run check`            | Run the complete non-browser local quality gate               |
+| `npm run lint`             | Run ESLint with Next.js and TypeScript rules                  |
+| `npm run typecheck`        | Generate Next.js route types and run strict TypeScript checks |
+| `npm run format`           | Format maintained source and configuration files              |
+| `npm run format:check`     | Verify formatting without changing files                      |
+| `npm run test`             | Run Vitest in watch mode                                      |
+| `npm run test:coverage`    | Run unit and component tests with V8 coverage                 |
+| `npm run test:e2e`         | Build and test the production static export in Chromium       |
+| `npm run measure:analyzer` | Measure the analyzer against all built-in examples            |
+| `npm run check:brand`      | Scan shipped source and output for prohibited legacy branding |
 
 To reproduce the GitHub project Pages path locally:
 

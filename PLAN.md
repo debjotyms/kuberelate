@@ -1,7 +1,7 @@
 # KubeRelate Implementation Plan
 
-> Status: Milestone 3 complete; Milestone 4 reusable interactive topology active
-> Last updated: 2026-08-10
+> Status: Milestone 4 complete; Milestone 5 core traffic/configuration/storage diagnostics active
+> Last updated: 2026-08-11
 > Companion tracker: [CHECKLIST.md](./CHECKLIST.md)
 
 ## Decisions at a glance

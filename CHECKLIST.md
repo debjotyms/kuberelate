@@ -1,7 +1,7 @@
 # KubeRelate Delivery Checklist
 
-> Current state: Milestone 3 Service selector vertical slice complete
-> Active milestone: **Milestone 4 — Reusable interactive topology**
+> Current state: Milestone 4 reusable interactive topology complete
+> Active milestone: **Milestone 5 — Ingress, configuration, Secret, and storage**
 > Detailed rationale and architecture: [PLAN.md](./PLAN.md)
 
 ## How to use this tracker
@@ -280,23 +280,35 @@ investigation threshold. The complete static export remains approximately 1.4 Mi
 
 **Outcome:** topology infrastructure supports future rules without component rewrites.
 
-- [ ] Lazy-load React Flow and Dagre.
-- [ ] Create a pure domain-to-graph adapter.
-- [ ] Implement deterministic left-to-right layout and optional top-to-bottom preference.
-- [ ] Add custom resource, unresolved, and namespace presentation nodes.
-- [ ] Add semantic edge verbs and explicit/inferred/missing states.
-- [ ] Add pan, zoom, fit view, and focus-selected controls.
-- [ ] Add selected resource/relationship/diagnostic store state with narrow selectors.
-- [ ] Add inspector focus management and safe Secret display policy.
-- [ ] Enable meaningful node/edge ARIA names and keyboard activation.
-- [ ] Respect reduced motion.
-- [ ] Keep text relationship view at feature parity.
-- [ ] Complete topology empty/loading/error states.
-- [ ] Measure and record first analyzer and bundle baselines.
+- [x] Lazy-load React Flow and Dagre.
+- [x] Create a pure domain-to-graph adapter.
+- [x] Implement deterministic left-to-right layout and optional top-to-bottom preference.
+- [x] Add custom resource, unresolved, and namespace presentation nodes.
+- [x] Add semantic edge verbs and explicit/inferred/missing states.
+- [x] Add pan, zoom, fit view, and focus-selected controls.
+- [x] Add selected resource/relationship/diagnostic store state with narrow selectors.
+- [x] Add inspector focus management and safe Secret display policy.
+- [x] Enable meaningful node/edge ARIA names and keyboard activation.
+- [x] Respect reduced motion.
+- [x] Keep text relationship view at feature parity.
+- [x] Complete topology empty/loading/error states.
+- [x] Measure and record first analyzer and bundle baselines.
 
 **Milestone gate**
 
-- [ ] A fixture relationship can be added through domain data only and appears correctly in graph, list, inspector, and keyboard navigation.
+- [x] A fixture relationship can be added through domain data only and appears correctly in graph, list, inspector, and keyboard navigation.
+
+Milestone 4 evidence: the framework-free graph adapter, deterministic Dagre layout, Zustand selector
+contracts, Secret-safe projection, React Flow component flow, and production-browser suite cover
+resource/unresolved/namespace nodes, explicit/inferred/missing edges, both directions, graph/list
+parity, inspector focus, node and edge keyboard activation, reduced motion, axe, and the Pages base
+path. The local Node.js 24 gate passes with 58 Vitest tests and eight Chromium tests.
+
+Milestone 4 baseline (2026-08-11): `npm run measure:analyzer` processed all three built-in examples
+(1,511 source bytes) across 750 warmed samples on Node.js 24.16.0 with a 0.273 ms median and
+0.640 ms p95. The lazy analyzer/editor chunk remains approximately 563 KB raw and 176 KB gzip;
+the nested React Flow/Dagre chunk is approximately 230 KB raw and 74 KB gzip and is absent from
+the initial HTML. The complete `/kuberelate` static export is approximately 1.8 MiB on disk.
 
 ---
 

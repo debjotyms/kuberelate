@@ -16,11 +16,11 @@ describe('relationship graph adapter', () => {
       analysis.relationships,
       analysis.diagnostics,
     )
-    const list = buildRelationshipList(analysis.relationships)
+    const list = buildRelationshipList(graph)
     const service = analysis.resources.find((resource) => resource.kind === 'Service')!
     const deployment = analysis.resources.find((resource) => resource.kind === 'Deployment')!
 
-    expect(graph.nodes).toHaveLength(3)
+    expect(graph.nodes).toHaveLength(4)
     expect(graph.nodes).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -34,9 +34,14 @@ describe('relationship graph adapter', () => {
           status: 'ok',
         }),
         expect.objectContaining({
-          type: 'missing',
+          type: 'unresolved',
           name: 'No matching workload',
           status: 'missing',
+        }),
+        expect.objectContaining({
+          type: 'namespace',
+          namespace: 'demo',
+          memberCount: 2,
         }),
       ]),
     )
@@ -57,10 +62,37 @@ describe('relationship graph adapter', () => {
       analysis.relationships,
       analysis.diagnostics,
     )
-    const list = buildRelationshipList(analysis.relationships)
+    const list = buildRelationshipList(graph)
+    const relationship = analysis.relationships[0]!
 
-    expect(graph.nodes).toHaveLength(2)
+    expect(graph.nodes).toHaveLength(3)
     expect(graph.edges[0]).toMatchObject({ resolution: 'resolved', label: 'selects · inferred' })
-    expect(list[0]).toMatchObject({ state: 'resolved', target: analysis.resources[0]?.id })
+    expect(relationship.resolution.state).toBe('resolved')
+    expect(list[0]).toMatchObject({
+      state: 'resolved',
+      target:
+        relationship.resolution.state === 'resolved' ? relationship.resolution.target : undefined,
+    })
+  })
+
+  it('carries explicit certainty through the generic edge and list presentation contracts', () => {
+    const analysis = analyzeManifest(workingServiceSelectorExample.source)
+    const explicitRelationship = { ...analysis.relationships[0]!, certainty: 'explicit' as const }
+    const graph = buildTopologyGraph(
+      analysis.resources,
+      [explicitRelationship],
+      analysis.diagnostics,
+    )
+
+    expect(graph.edges[0]).toMatchObject({
+      certainty: 'explicit',
+      verb: 'selects',
+      label: 'selects · explicit',
+    })
+    expect(buildRelationshipList(graph)[0]).toMatchObject({
+      certainty: 'explicit',
+      verb: 'selects',
+      state: 'resolved',
+    })
   })
 })

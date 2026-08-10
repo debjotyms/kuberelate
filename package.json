@@ -32,6 +32,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
+    "measure:analyzer": "node scripts/measure-analyzer.mjs",
     "serve:e2e": "node scripts/serve-export.mjs",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -47,12 +48,15 @@
     "@codemirror/search": "6.7.1",
     "@codemirror/state": "6.7.1",
     "@codemirror/view": "6.43.8",
+    "@dagrejs/dagre": "3.1.1",
     "@lezer/highlight": "1.2.3",
+    "@xyflow/react": "12.11.2",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "yaml": "2.9.0",
-    "zod": "4.4.3"
+    "zod": "4.4.3",
+    "zustand": "5.0.14"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",

@@ -192,7 +192,7 @@ spec:
         >
           <div className="mx-auto w-full max-w-[94rem] px-3 py-16 sm:px-6 sm:py-20 lg:px-8">
             <div className="mx-auto mb-10 max-w-3xl text-center">
-              <p className="section-kicker">Milestone 3 · Service selector analysis</p>
+              <p className="section-kicker">Milestone 4 · Interactive topology</p>
               <h2
                 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
                 id="workbench-title"

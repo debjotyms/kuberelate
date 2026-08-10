@@ -52,13 +52,13 @@ describe('ManifestWorkbench', () => {
     const issue = within(issues)
       .getByText('Service selector matches no supplied workload')
       .closest('article')!
-    const serviceNode = screen.getByRole('button', {
-      name: /Service demo\/web\. Warning\. Inspect resource/,
+    const serviceNode = await screen.findByRole('group', {
+      name: /Service demo\/web\. Warning\. 1 connection.*inspect this resource/i,
     })
 
     await user.click(within(issue).getByRole('button', { name: 'View in topology' }))
 
-    expect(serviceNode).toHaveFocus()
+    await waitFor(() => expect(serviceNode).toHaveFocus())
     const issueInspector = screen.getByRole('region', {
       name: 'Service selector matches no supplied workload',
     })
@@ -89,9 +89,11 @@ describe('ManifestWorkbench', () => {
     })
 
     expect(screen.queryByRole('region', { name: 'Issues' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Inspect relationship\./ })).toHaveAccessibleName(
-      /selects Pods represented by Deployment demo\/web using app=web/,
-    )
+    expect(
+      await screen.findByRole('group', {
+        name: /selects Pods represented by Deployment demo\/web using app=web/i,
+      }),
+    ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Relationship list' }))
     const list = screen.getByLabelText('Semantic relationship list')
@@ -106,6 +108,63 @@ describe('ManifestWorkbench', () => {
     expect(screen.getByRole('region', { name: 'Service selects workload' })).toHaveTextContent(
       'Inferred from labels in the supplied manifests',
     )
+  })
+
+  it('activates resource nodes and relationship edges by keyboard and focuses the inspector', async () => {
+    const user = userEvent.setup()
+    render(<ManifestWorkbench initialSource={brokenServiceSelectorExample.source} />)
+
+    const serviceNode = await screen.findByRole('group', {
+      name: /Service demo\/web\. Warning\. 1 connection.*inspect this resource/i,
+    })
+    serviceNode.focus()
+    await user.keyboard('{Enter}')
+
+    const resourceInspector = screen.getByRole('region', { name: 'Service web' })
+    await waitFor(() =>
+      expect(within(resourceInspector).getByRole('heading', { name: 'Service web' })).toHaveFocus(),
+    )
+
+    const relationshipEdge = screen.getByRole('group', {
+      name: /Service demo\/web selects no supplied Pod.*inferred relationship, missing/i,
+    })
+    relationshipEdge.focus()
+    await user.keyboard(' ')
+
+    const relationshipInspector = screen.getByRole('region', {
+      name: 'Service selects workload',
+    })
+    await waitFor(() =>
+      expect(
+        within(relationshipInspector).getByRole('heading', {
+          name: 'Service selects workload',
+        }),
+      ).toHaveFocus(),
+    )
+  })
+
+  it('shows Secret keys in the inspector while keeping values out of results', async () => {
+    const sentinel = 'never-render-this-ui-secret'
+    const user = userEvent.setup()
+    const { container } = render(
+      <ManifestWorkbench
+        initialSource={`apiVersion: v1
+kind: Secret
+metadata:
+  name: credentials
+stringData:
+  password: ${sentinel}
+  username: demo
+`}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Inspect resource' }))
+    const inspector = screen.getByRole('region', { name: 'Secret credentials' })
+
+    expect(inspector).toHaveTextContent('Values hidden by design')
+    expect(inspector).toHaveTextContent('Keys: password, username')
+    expect(container.querySelector('.results-panel')).not.toHaveTextContent(sentinel)
   })
 
   it('shows parser diagnostics and moves focus to the YAML source', async () => {
