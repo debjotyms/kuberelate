@@ -5,6 +5,7 @@ import type { ResourceId } from '@/domain/model/analysis'
 import type { GraphDirection } from '@/graph/layout/dagre-layout'
 
 export type TopologyView = 'map' | 'list'
+export type WorkbenchLayoutMode = 'split' | 'diagram' | 'editor'
 
 export interface TopologyFocusRequest {
   readonly resourceId: ResourceId
@@ -14,6 +15,8 @@ export interface TopologyFocusRequest {
 export interface WorkbenchInteractionState {
   readonly topologyView: TopologyView
   readonly graphDirection: GraphDirection
+  readonly layoutMode: WorkbenchLayoutMode
+  readonly isFullscreen: boolean
   readonly selectedResourceId?: ResourceId
   readonly selectedRelationshipId?: string
   readonly selectedDiagnosticId?: string
@@ -21,6 +24,8 @@ export interface WorkbenchInteractionState {
   readonly inspectorFocusToken: number
   readonly setTopologyView: (view: TopologyView) => void
   readonly setGraphDirection: (direction: GraphDirection) => void
+  readonly setLayoutMode: (mode: WorkbenchLayoutMode) => void
+  readonly toggleFullscreen: (fullscreen?: boolean) => void
   readonly inspectResource: (id: ResourceId) => void
   readonly inspectRelationship: (id: string) => void
   readonly inspectDiagnostic: (id: string) => void
@@ -41,9 +46,14 @@ export const useWorkbenchStore = create<WorkbenchInteractionState>()(
     (set) => ({
       topologyView: 'map',
       graphDirection: 'LR',
+      layoutMode: 'split',
+      isFullscreen: false,
       inspectorFocusToken: 0,
       setTopologyView: (topologyView) => set({ topologyView }),
       setGraphDirection: (graphDirection) => set({ graphDirection }),
+      setLayoutMode: (layoutMode) => set({ layoutMode }),
+      toggleFullscreen: (fullscreen) =>
+        set((state) => ({ isFullscreen: fullscreen ?? !state.isFullscreen })),
       inspectResource: (selectedResourceId) =>
         set((state) => ({
           ...selectionReset,
@@ -84,13 +94,15 @@ export const useWorkbenchStore = create<WorkbenchInteractionState>()(
     }),
     {
       name: 'kuberelate-preferences',
-      partialize: (state) => ({ graphDirection: state.graphDirection }),
+      partialize: (state) => ({ graphDirection: state.graphDirection, layoutMode: state.layoutMode }),
     },
   ),
 )
 
 export const selectTopologyView = (state: WorkbenchInteractionState) => state.topologyView
 export const selectGraphDirection = (state: WorkbenchInteractionState) => state.graphDirection
+export const selectLayoutMode = (state: WorkbenchInteractionState) => state.layoutMode
+export const selectIsFullscreen = (state: WorkbenchInteractionState) => state.isFullscreen
 export const selectSelectedResourceId = (state: WorkbenchInteractionState) =>
   state.selectedResourceId
 export const selectSelectedRelationshipId = (state: WorkbenchInteractionState) =>

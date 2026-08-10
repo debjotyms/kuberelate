@@ -31,6 +31,7 @@ import type {
 import { layoutTopologyGraph } from '@/graph/layout/dagre-layout'
 import {
   selectGraphDirection,
+  selectIsFullscreen,
   selectSelectedDiagnosticId,
   selectSelectedRelationshipId,
   selectSelectedResourceId,
@@ -375,13 +376,20 @@ function TopologyCanvasInner({ graph }: TopologyCanvasProps) {
     [fitView, getNode, reducedMotion],
   )
 
+  const isFullscreen = useWorkbenchStore(selectIsFullscreen)
+  const toggleFullscreen = useWorkbenchStore((state) => state.toggleFullscreen)
+
   useEffect(() => {
     if (!nodesInitialized) {
       return
     }
 
-    void fitView({ padding: 0.08, maxZoom: 1.05, duration: reducedMotion ? 0 : 180 })
-  }, [direction, fitView, graphSignature, nodesInitialized, reducedMotion])
+    const timer = setTimeout(() => {
+      void fitView({ padding: 0.08, maxZoom: 1.05, duration: reducedMotion ? 0 : 180 })
+    }, 50)
+
+    return () => clearTimeout(timer)
+  }, [direction, fitView, graphSignature, isFullscreen, nodesInitialized, reducedMotion])
 
   useEffect(() => {
     if (focusRequest) {
@@ -490,6 +498,14 @@ function TopologyCanvasInner({ graph }: TopologyCanvasProps) {
             type="button"
           >
             Focus selected
+          </button>
+          <button
+            aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+            className="focus-selected-button"
+            onClick={() => toggleFullscreen()}
+            type="button"
+          >
+            {isFullscreen ? 'Exit full screen' : 'Full screen'}
           </button>
         </Panel>
       </ReactFlow>

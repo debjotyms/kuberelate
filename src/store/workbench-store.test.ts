@@ -5,6 +5,8 @@ import { analyzeManifest } from '@/domain/parser/analyze-manifest'
 
 import {
   selectGraphDirection,
+  selectIsFullscreen,
+  selectLayoutMode,
   selectSelectedDiagnosticId,
   selectSelectedRelationshipId,
   selectSelectedResourceId,
@@ -19,6 +21,8 @@ describe('workbench interaction store', () => {
     useWorkbenchStore.setState({
       topologyView: 'map',
       graphDirection: 'LR',
+      layoutMode: 'split',
+      isFullscreen: false,
       selectedResourceId: undefined,
       selectedRelationshipId: undefined,
       selectedDiagnosticId: undefined,
@@ -65,15 +69,33 @@ describe('workbench interaction store', () => {
     expect(selectSelectedDiagnosticId(useWorkbenchStore.getState())).toBeUndefined()
   })
 
-  it('persists graph direction but no selection or manifest-shaped data', () => {
+  it('handles layoutMode and isFullscreen toggling', () => {
+    const store = useWorkbenchStore.getState()
+
+    expect(selectLayoutMode(useWorkbenchStore.getState())).toBe('split')
+    expect(selectIsFullscreen(useWorkbenchStore.getState())).toBe(false)
+
+    store.setLayoutMode('diagram')
+    expect(selectLayoutMode(useWorkbenchStore.getState())).toBe('diagram')
+
+    store.toggleFullscreen(true)
+    expect(selectIsFullscreen(useWorkbenchStore.getState())).toBe(true)
+
+    store.toggleFullscreen()
+    expect(selectIsFullscreen(useWorkbenchStore.getState())).toBe(false)
+  })
+
+  it('persists graph direction and layoutMode but no selection or manifest-shaped data', () => {
     useWorkbenchStore.getState().inspectDiagnostic('diagnostic:test')
     useWorkbenchStore.getState().setGraphDirection('TB')
+    useWorkbenchStore.getState().setLayoutMode('diagram')
 
     expect(selectGraphDirection(useWorkbenchStore.getState())).toBe('TB')
+    expect(selectLayoutMode(useWorkbenchStore.getState())).toBe('diagram')
     const persisted = localStorage.getItem('kuberelate-preferences')
     expect(persisted).not.toBeNull()
     expect(JSON.parse(persisted!)).toEqual({
-      state: { graphDirection: 'TB' },
+      state: { graphDirection: 'TB', layoutMode: 'diagram' },
       version: 0,
     })
   })

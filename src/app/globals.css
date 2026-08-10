@@ -529,6 +529,89 @@ button {
 .workbench-grid {
   display: grid;
   min-height: 42rem;
+  transition: grid-template-columns 200ms ease;
+}
+
+.manifest-workbench.is-fullscreen,
+.manifest-workbench:fullscreen {
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: var(--kg-canvas);
+  padding: 1rem;
+}
+
+.manifest-workbench.is-fullscreen .workbench-grid,
+.manifest-workbench:fullscreen .workbench-grid {
+  min-height: calc(100vh - 6rem);
+}
+
+.manifest-workbench.is-fullscreen .topology-canvas,
+.manifest-workbench:fullscreen .topology-canvas {
+  min-height: calc(100vh - 14rem);
+}
+
+.layout-switcher {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.625rem;
+  padding: 0.15rem;
+  background: color-mix(in srgb, var(--kg-surface) 85%, transparent);
+}
+
+.layout-switcher button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.65rem;
+  background: transparent;
+  color: var(--kg-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.layout-switcher button[aria-pressed='true'] {
+  background: var(--kg-surface-muted);
+  color: var(--kg-ink);
+  font-weight: 750;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.layout-switcher button:hover:not([aria-pressed='true']) {
+  color: var(--kg-ink);
+}
+
+.panel-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  background: var(--kg-surface);
+  color: var(--kg-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.panel-toggle-button:hover {
+  border-color: var(--kg-brand);
+  color: var(--kg-ink);
+}
+
+.editor-panel[data-collapsed='true'],
+.results-panel[data-collapsed='true'] {
+  display: none !important;
 }
 
 .editor-panel,
@@ -1533,6 +1616,14 @@ button.connection-resource {
 @media (min-width: 64rem) {
   .workbench-grid {
     grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.92fr);
+  }
+
+  .workbench-grid[data-layout-mode='diagram'] {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-grid[data-layout-mode='editor'] {
+    grid-template-columns: 1fr;
   }
 
   .editor-panel {

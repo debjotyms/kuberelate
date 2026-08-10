@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   brokenServiceSelectorExample,
@@ -28,6 +28,8 @@ import {
 } from '@/graph/adapter/relationship-graph'
 import {
   selectInspectorFocusToken,
+  selectIsFullscreen,
+  selectLayoutMode,
   selectSelectedDiagnosticId,
   selectSelectedRelationshipId,
   selectSelectedResourceId,
@@ -623,6 +625,7 @@ interface ManifestWorkbenchProps {
 }
 
 export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [source, setSource] = useState(initialSource)
   const [analysis, setAnalysis] = useState(() => analyzeManifest(initialSource))
   const [analyzedSource, setAnalyzedSource] = useState(initialSource)
@@ -633,10 +636,14 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
   const selectedRelationshipId = useWorkbenchStore(selectSelectedRelationshipId)
   const selectedDiagnosticId = useWorkbenchStore(selectSelectedDiagnosticId)
   const inspectorFocusToken = useWorkbenchStore(selectInspectorFocusToken)
+  const layoutMode = useWorkbenchStore(selectLayoutMode)
+  const isFullscreen = useWorkbenchStore(selectIsFullscreen)
   const inspectResource = useWorkbenchStore((state) => state.inspectResource)
   const inspectRelationship = useWorkbenchStore((state) => state.inspectRelationship)
   const inspectDiagnostic = useWorkbenchStore((state) => state.inspectDiagnostic)
   const focusDiagnosticInTopology = useWorkbenchStore((state) => state.focusDiagnosticInTopology)
+  const setLayoutMode = useWorkbenchStore((state) => state.setLayoutMode)
+  const toggleFullscreen = useWorkbenchStore((state) => state.toggleFullscreen)
   const clearSelection = useWorkbenchStore((state) => state.clearSelection)
   const selection: InspectorSelection | undefined = selectedResourceId
     ? { type: 'resource', id: selectedResourceId }
@@ -678,6 +685,18 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
     return () => window.cancelAnimationFrame(frame)
   }, [inspectorFocusToken])
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isNativeFs = Boolean(document.fullscreenElement)
+      if (!isNativeFs && isFullscreen) {
+        toggleFullscreen(false)
+      }
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [isFullscreen, toggleFullscreen])
+
   const isAnalyzing = source !== analyzedSource
 
   function loadExample(): void {
@@ -715,6 +734,20 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
     })
   }
 
+  function handleToggleFullscreen(): void {
+    if (!isFullscreen) {
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {})
+      }
+      toggleFullscreen(true)
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {})
+      }
+      toggleFullscreen(false)
+    }
+  }
+
   const statusText = isAnalyzing
     ? 'Analyzing…'
     : `${statusLabels[analysis.status]}. ${plural(analysis.summary.resources, 'resource')}, ${plural(analysis.summary.errors, 'error')}, ${plural(analysis.summary.warnings, 'warning')}, and ${plural(analysis.summary.relationships, 'relationship')}.`
@@ -722,8 +755,10 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
   return (
     <div
       aria-busy={isAnalyzing}
-      className="manifest-workbench"
+      className={`manifest-workbench ${isFullscreen ? 'is-fullscreen' : ''}`}
       data-analysis-status={isAnalyzing ? 'working' : analysis.status}
+      data-fullscreen={isFullscreen || undefined}
+      ref={containerRef}
     >
       <div className="workbench-toolbar">
         <div className="min-w-0">
@@ -744,38 +779,78 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
           </select>
           <p className="mt-1 max-w-xl text-xs text-muted">{selectedExample.description}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            className="toolbar-button toolbar-button-primary"
-            onClick={loadExample}
-            type="button"
-          >
-            Load example
-          </button>
-          <button
-            className="toolbar-button"
-            disabled={!loadedExampleId}
-            onClick={resetExample}
-            type="button"
-          >
-            Reset
-          </button>
-          <button
-            className="toolbar-button"
-            disabled={!source}
-            onClick={() => {
-              setSource('')
-              clearSelection()
-            }}
-            type="button"
-          >
-            Clear
-          </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div aria-label="Layout view mode" className="layout-switcher" role="group">
+            <button
+              aria-label="Split view showing editor and diagram"
+              aria-pressed={layoutMode === 'split'}
+              onClick={() => setLayoutMode('split')}
+              type="button"
+            >
+              Split
+            </button>
+            <button
+              aria-label="Focus diagram by collapsing YAML editor"
+              aria-pressed={layoutMode === 'diagram'}
+              onClick={() => setLayoutMode('diagram')}
+              type="button"
+            >
+              Diagram focus
+            </button>
+            <button
+              aria-label="Focus YAML editor by collapsing diagram"
+              aria-pressed={layoutMode === 'editor'}
+              onClick={() => setLayoutMode('editor')}
+              type="button"
+            >
+              YAML focus
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="toolbar-button toolbar-button-primary"
+              onClick={loadExample}
+              type="button"
+            >
+              Load example
+            </button>
+            <button
+              className="toolbar-button"
+              disabled={!loadedExampleId}
+              onClick={resetExample}
+              type="button"
+            >
+              Reset
+            </button>
+            <button
+              className="toolbar-button"
+              disabled={!source}
+              onClick={() => {
+                setSource('')
+                clearSelection()
+              }}
+              type="button"
+            >
+              Clear
+            </button>
+            <button
+              aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+              className="toolbar-button"
+              onClick={handleToggleFullscreen}
+              type="button"
+            >
+              {isFullscreen ? 'Exit full screen' : 'Full screen'}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="workbench-grid">
-        <section aria-labelledby="manifest-editor-label" className="editor-panel">
+      <div className="workbench-grid" data-layout-mode={layoutMode}>
+        <section
+          aria-labelledby="manifest-editor-label"
+          className="editor-panel"
+          data-collapsed={layoutMode === 'diagram' || undefined}
+        >
           <div className="panel-heading">
             <div>
               <h3 className="text-lg font-semibold" id="manifest-editor-label">
@@ -783,7 +858,17 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
               </h3>
               <p className="mt-1 text-sm text-muted">Processed only in this browser.</p>
             </div>
-            <span className="privacy-chip">Memory only</span>
+            <div className="flex items-center gap-2">
+              <span className="privacy-chip">Memory only</span>
+              <button
+                aria-label={layoutMode === 'diagram' ? 'Expand code editor' : 'Collapse code editor'}
+                className="panel-toggle-button"
+                onClick={() => setLayoutMode(layoutMode === 'diagram' ? 'split' : 'diagram')}
+                type="button"
+              >
+                {layoutMode === 'diagram' ? 'Expand editor' : 'Collapse editor'}
+              </button>
+            </div>
           </div>
           <p className="editor-help" id="manifest-editor-help">
             Paste one or more documents. Use Ctrl/⌘+F to search and Ctrl/⌘+Z to undo. Tab moves
@@ -800,7 +885,11 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
           />
         </section>
 
-        <section aria-labelledby="analysis-results-title" className="results-panel">
+        <section
+          aria-labelledby="analysis-results-title"
+          className="results-panel"
+          data-collapsed={layoutMode === 'editor' || undefined}
+        >
           <div className="panel-heading results-heading">
             <div>
               <h3 className="text-lg font-semibold" id="analysis-results-title">
@@ -810,11 +899,23 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
                 Static relationships from the supplied YAML.
               </p>
             </div>
-            <span
-              className={`analysis-state analysis-state-${isAnalyzing ? 'working' : analysis.status}`}
-            >
-              {isAnalyzing ? 'Analyzing…' : statusLabels[analysis.status]}
-            </span>
+            <div className="flex items-center gap-2">
+              {layoutMode === 'diagram' ? (
+                <button
+                  aria-label="Show YAML editor"
+                  className="panel-toggle-button"
+                  onClick={() => setLayoutMode('split')}
+                  type="button"
+                >
+                  Show YAML editor
+                </button>
+              ) : null}
+              <span
+                className={`analysis-state analysis-state-${isAnalyzing ? 'working' : analysis.status}`}
+              >
+                {isAnalyzing ? 'Analyzing…' : statusLabels[analysis.status]}
+              </span>
+            </div>
           </div>
 
           <div aria-label="Analysis summary" className="summary-grid" role="group">

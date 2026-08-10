@@ -226,4 +226,22 @@ metadata:
     })
     expect(populatedResults.violations).toEqual([])
   })
+
+  it('toggles layout mode to collapse editor or focus diagram', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<ManifestWorkbench />)
+
+    const grid = container.querySelector('.workbench-grid')
+    expect(grid).toHaveAttribute('data-layout-mode', 'split')
+
+    await user.click(screen.getByRole('button', { name: 'Focus diagram by collapsing YAML editor' }))
+    expect(grid).toHaveAttribute('data-layout-mode', 'diagram')
+    expect(container.querySelector('.editor-panel')).toHaveAttribute('data-collapsed', 'true')
+
+    await user.click(screen.getByRole('button', { name: 'Show YAML editor' }))
+    expect(grid).toHaveAttribute('data-layout-mode', 'split')
+
+    await user.click(screen.getByRole('button', { name: 'Collapse code editor' }))
+    expect(grid).toHaveAttribute('data-layout-mode', 'diagram')
+  })
 })
