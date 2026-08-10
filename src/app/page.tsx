@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 import { BrandMark } from '@/components/brand-mark'
 import { product } from '@/config/product'
+import { WorkbenchLoader } from '@/features/workbench/workbench-loader'
 
 const flowSteps = [
   {
@@ -40,12 +41,16 @@ export default function HomePage() {
             aria-label={`${product.name} home`}
             className="group flex items-center gap-3 rounded-lg font-semibold tracking-tight outline-none focus-visible:ring-3 focus-visible:ring-focus/50"
             href="/"
+            prefetch={false}
           >
             <BrandMark className="size-9 text-brand transition-transform group-hover:-rotate-3" />
             <span className="text-lg">{product.name}</span>
           </Link>
 
           <nav aria-label="Primary navigation" className="flex items-center gap-1 sm:gap-2">
+            <a className="nav-link hidden sm:inline-flex" href="#workbench">
+              Analyzer
+            </a>
             <a className="nav-link hidden sm:inline-flex" href="#how-it-works">
               How it works
             </a>
@@ -82,8 +87,8 @@ export default function HomePage() {
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a className="button-primary" href="#how-it-works">
-                  Explore the workflow
+                <a className="button-primary" href="#workbench">
+                  Open the analyzer
                   <span aria-hidden="true">↓</span>
                 </a>
                 <a className="button-secondary" href="#analysis-boundary">
@@ -177,6 +182,29 @@ spec:
                 A preview showing a Service selector that does not match a Deployment Pod template.
               </figcaption>
             </figure>
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="workbench-title"
+          className="border-b border-line bg-surface-muted/55"
+          id="workbench"
+        >
+          <div className="mx-auto w-full max-w-[94rem] px-3 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <div className="mx-auto mb-10 max-w-3xl text-center">
+              <p className="section-kicker">Milestone 2 · Resource inventory</p>
+              <h2
+                className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+                id="workbench-title"
+              >
+                Turn YAML into a source-aware resource list.
+              </h2>
+              <p className="mt-4 text-lg leading-8 text-muted">
+                Paste multi-document manifests, inspect normalized identities, and follow an issue
+                directly back to its source. Relationship analysis arrives in the next milestone.
+              </p>
+            </div>
+            <WorkbenchLoader />
           </div>
         </section>
 

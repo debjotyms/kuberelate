@@ -1,7 +1,7 @@
 # KubeRelate Delivery Checklist
 
-> Current state: Milestone 1 foundation and private CI verification complete; public Pages activation deferred
-> Active milestone: **Milestone 1 — public Pages activation when repository visibility changes**
+> Current state: Milestone 2 YAML-to-resource-list implementation complete; public Pages activation deferred while private
+> Active milestone: **Milestone 3 — Service selector vertical slice**
 > Detailed rationale and architecture: [PLAN.md](./PLAN.md)
 
 ## How to use this tracker
@@ -128,67 +128,80 @@ wait until the repository is made public.
 
 ### Editor
 
-- [ ] Lazy-load CodeMirror 6 and YAML support.
-- [ ] Add a visible editor label, line numbers, highlighting, history, search, and keyboard help.
-- [ ] Add Load example, Clear, and Reset actions.
-- [ ] Add polite parse/analyze status announcements.
-- [ ] Keep source text in memory only.
+- [x] Lazy-load CodeMirror 6 and YAML support.
+- [x] Add a visible editor label, line numbers, highlighting, history, search, and keyboard help.
+- [x] Add Load example, Clear, and Reset actions.
+- [x] Add polite parse/analyze status announcements.
+- [x] Keep source text in memory only.
 
 ### Parser and source mapping
 
-- [ ] Parse multiple documents with `parseAllDocuments`.
-- [ ] Track line/column ranges with `LineCounter`.
-- [ ] Ignore empty documents cleanly.
-- [ ] Return structured errors/warnings without throwing into React.
-- [ ] Analyze valid documents when another document is malformed and label results partial.
-- [ ] Keep duplicate-key validation strict.
-- [ ] Apply bounded alias expansion; never disable the limit.
-- [ ] Add source/document/resource limits with recoverable messages.
+- [x] Parse multiple documents with `parseAllDocuments`.
+- [x] Track line/column ranges with `LineCounter`.
+- [x] Ignore empty documents cleanly.
+- [x] Return structured errors/warnings without throwing into React.
+- [x] Analyze valid documents when another document is malformed and label results partial.
+- [x] Keep duplicate-key validation strict.
+- [x] Apply bounded alias expansion; never disable the limit.
+- [x] Add source/document/resource limits with recoverable messages.
 
 ### Normalization and indexing
 
-- [ ] Validate the minimal `apiVersion`/`kind`/`metadata.name` envelope from `unknown`.
-- [ ] Split API group and version correctly, including the core group.
-- [ ] Add known namespaced/cluster-scoped kind registry.
-- [ ] Apply effective `default` namespace only to known namespaced kinds.
-- [ ] Preserve source document and relevant field ranges.
-- [ ] Expand Kubernetes `List` objects.
-- [ ] Preserve and diagnose duplicate canonical identities.
-- [ ] Display unknown CRDs generically without crashing.
-- [ ] Generate stable occurrence IDs and canonical keys.
-- [ ] Build initial identity/kind/namespace indexes.
+- [x] Validate the minimal `apiVersion`/`kind`/`metadata.name` envelope from `unknown`.
+- [x] Split API group and version correctly, including the core group.
+- [x] Add known namespaced/cluster-scoped kind registry.
+- [x] Apply effective `default` namespace only to known namespaced kinds.
+- [x] Preserve source document and relevant field ranges.
+- [x] Expand Kubernetes `List` objects.
+- [x] Preserve and diagnose duplicate canonical identities.
+- [x] Display unknown CRDs generically without crashing.
+- [x] Generate stable occurrence IDs and canonical keys.
+- [x] Build initial identity/kind/namespace indexes.
 
 ### UI
 
-- [ ] Show resource count and ordered resource list.
-- [ ] Show kind, name, effective namespace/scope, source document, and support level.
-- [ ] Show parse and identity diagnostics.
-- [ ] Jump from a resource/parse issue to the relevant source line.
-- [ ] Complete intentional empty, malformed, partial, oversized, and valid states.
+- [x] Show resource count and ordered resource list.
+- [x] Show kind, name, effective namespace/scope, source document, and support level.
+- [x] Show parse and identity diagnostics.
+- [x] Jump from a resource/parse issue to the relevant source line.
+- [x] Complete intentional empty, malformed, partial, oversized, and valid states.
 
 ### Required test matrix
 
-- [ ] Empty input and empty documents.
-- [ ] Valid multi-document YAML.
-- [ ] Malformed YAML and recovery.
-- [ ] Correct source line/column mapping.
-- [ ] Core and grouped API versions.
-- [ ] Missing/invalid identity fields.
-- [ ] Explicit/default namespaces and cluster scope.
-- [ ] Invalid namespace on a known cluster-scoped kind.
-- [ ] Same name in different namespaces.
-- [ ] Duplicate identity.
-- [ ] `List` expansion.
-- [ ] Anchors/aliases and alias-limit failure.
-- [ ] Helm/template-like unsupported input.
-- [ ] Unknown CRD.
-- [ ] Oversized/document/resource limits.
-- [ ] Keyboard, axe, and production-export E2E flow.
+- [x] Empty input and empty documents.
+- [x] Valid multi-document YAML.
+- [x] Malformed YAML and recovery.
+- [x] Correct source line/column mapping.
+- [x] Core and grouped API versions.
+- [x] Missing/invalid identity fields.
+- [x] Explicit/default namespaces and cluster scope.
+- [x] Invalid namespace on a known cluster-scoped kind.
+- [x] Same name in different namespaces.
+- [x] Duplicate identity.
+- [x] `List` expansion.
+- [x] Anchors/aliases and alias-limit failure.
+- [x] Helm/template-like unsupported input.
+- [x] Unknown CRD.
+- [x] Oversized/document/resource limits.
+- [x] Keyboard, axe, and production-export E2E flow.
 
 **Milestone gate**
 
-- [ ] Valid resources and precise parser errors appear immediately and never crash the application.
-- [ ] V0 behavior is documented and all CI checks pass.
+- [x] Valid resources and precise parser errors appear immediately and never crash the application.
+- [x] V0 behavior is documented and all CI checks pass locally.
+
+Milestone 2 evidence: parser/source contract tests, workbench component and axe tests, and production
+Chromium tests cover valid, malformed, partial, recovery, keyboard, privacy, Secret-redaction,
+light/dark, and 320 CSS pixel states. Coverage floors are enforced at 80% globally and 90% for domain
+lines/statements, with 75% and 85% branch floors respectively.
+
+The complete local gate passes with pinned Node.js 24.19.0 and npm 11.18.0: 28 Vitest tests, six
+Chromium production-artifact tests at the `/kuberelate` Pages base path, static export, and brand
+scan are green.
+
+V0 bundle measurement (2026-08-10): the lazy analyzer/editor chunk is approximately 524 KiB raw and
+166 KiB gzip and is not referenced by the initial HTML; the complete static export is approximately
+1.4 MiB on disk. Future analyzer-chunk increases above 10% require investigation.
 
 ---
 

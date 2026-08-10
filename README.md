@@ -10,8 +10,9 @@ learning tool. It is designed to make selectors, references, namespaces, ports, 
 storage dependencies easier to understand without connecting to a cluster or uploading YAML.
 
 > [!IMPORTANT]
-> KubeRelate is in early development. The current milestone provides the public shell, static
-> deployment, quality gates, and test foundation. YAML parsing and analysis begin in Milestone 2.
+> KubeRelate is in early development. The V0 analyzer can turn multi-document YAML into a
+> source-aware resource inventory. Relationship analysis, diagnostics, and topology begin in
+> Milestone 3.
 
 ## Why KubeRelate
 
@@ -29,10 +30,29 @@ the evidence without pretending to know live cluster state.
 - Vitest, Testing Library, Playwright, and axe accessibility checks
 - Gated GitHub Actions build, artifact smoke test, and Pages deployment
 - Light and dark color schemes with reduced-motion support
+- Lazy-loaded CodeMirror YAML editor with search, history, inline parser markers, and source jumps
+- Deterministic multi-document parsing, normalization, scope-aware identity, and safety limits
+- Ordered resource and issue lists with partial-result recovery for malformed neighboring documents
 
 The detailed [implementation plan](./PLAN.md) and [delivery checklist](./CHECKLIST.md) track current
-scope and evidence. Planned V1 work includes a source-aware YAML editor, deterministic parsing,
-relationship analysis, diagnostics, topology and text views, and curated troubleshooting examples.
+scope and evidence. Planned V1 work now continues with relationship analysis, diagnostics, topology
+and text views, and curated troubleshooting examples.
+
+## Current V0 behavior
+
+- Parses up to 250 YAML documents and preserves one-based line/column source locations.
+- Normalizes up to 500 resources with stable occurrence IDs and canonical identities.
+- Applies `default` only to known namespaced kinds; known cluster-scoped and unknown kinds remain
+  explicit.
+- Expands Kubernetes `List` objects and preserves duplicate resource occurrences with diagnostics.
+- Keeps valid documents visible when another document is malformed and clearly labels the output
+  partial.
+- Enforces a 2 MiB source limit and bounded YAML alias expansion without changing editor content.
+- Keeps source text in React memory only and renders no Secret values outside the YAML editor.
+
+V0 validates only the minimal Kubernetes resource envelope (`apiVersion`, `kind`, and
+`metadata.name`). It does not perform complete Kubernetes schema validation or infer relationships
+yet.
 
 ## Privacy and analysis boundary
 
@@ -50,6 +70,7 @@ relationship analysis, diagnostics, topology and text views, and curated trouble
 - Next.js App Router with static export
 - React and strict TypeScript
 - Tailwind CSS with project-owned design tokens
+- CodeMirror 6, `yaml`, and `zod/mini`
 - Vitest and React Testing Library
 - Playwright and axe-core
 - GitHub Actions and GitHub Pages
