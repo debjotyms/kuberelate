@@ -94,7 +94,10 @@ export const useWorkbenchStore = create<WorkbenchInteractionState>()(
     }),
     {
       name: 'kuberelate-preferences',
-      partialize: (state) => ({ graphDirection: state.graphDirection, layoutMode: state.layoutMode }),
+      partialize: (state) => ({
+        graphDirection: state.graphDirection,
+        layoutMode: state.layoutMode,
+      }),
     },
   ),
 )

@@ -861,7 +861,9 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
             <div className="flex items-center gap-2">
               <span className="privacy-chip">Memory only</span>
               <button
-                aria-label={layoutMode === 'diagram' ? 'Expand code editor' : 'Collapse code editor'}
+                aria-label={
+                  layoutMode === 'diagram' ? 'Expand code editor' : 'Collapse code editor'
+                }
                 className="panel-toggle-button"
                 onClick={() => setLayoutMode(layoutMode === 'diagram' ? 'split' : 'diagram')}
                 type="button"

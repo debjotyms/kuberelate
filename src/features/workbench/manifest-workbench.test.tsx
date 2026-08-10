@@ -234,7 +234,9 @@ metadata:
     const grid = container.querySelector('.workbench-grid')
     expect(grid).toHaveAttribute('data-layout-mode', 'split')
 
-    await user.click(screen.getByRole('button', { name: 'Focus diagram by collapsing YAML editor' }))
+    await user.click(
+      screen.getByRole('button', { name: 'Focus diagram by collapsing YAML editor' }),
+    )
     expect(grid).toHaveAttribute('data-layout-mode', 'diagram')
     expect(container.querySelector('.editor-panel')).toHaveAttribute('data-collapsed', 'true')
 
