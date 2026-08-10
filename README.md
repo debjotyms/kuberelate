@@ -2,7 +2,7 @@
 
 **See how your Kubernetes manifests connect.**
 
-[![CI / Pages](https://github.com/debjotyms/kube-relate/actions/workflows/ci.yml/badge.svg)](https://github.com/debjotyms/kube-relate/actions/workflows/ci.yml)
+[![CI / Pages](https://github.com/debjotyms/kuberelate/actions/workflows/ci.yml/badge.svg)](https://github.com/debjotyms/kuberelate/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-2ea44f.svg)](./LICENSE)
 
 KubeRelate is a privacy-first, browser-based Kubernetes manifest relationship analyzer and
@@ -62,8 +62,8 @@ relationship analysis, diagnostics, topology and text views, and curated trouble
 - npm 11
 
 ```bash
-git clone https://github.com/debjotyms/kube-relate.git
-cd kube-relate
+git clone https://github.com/debjotyms/kuberelate.git
+cd kuberelate
 nvm use
 npm ci
 npm run dev
@@ -90,8 +90,8 @@ Open `http://localhost:3000`.
 To reproduce the GitHub project Pages path locally:
 
 ```bash
-NEXT_PUBLIC_BASE_PATH=/kube-relate npm run build
-NEXT_PUBLIC_BASE_PATH=/kube-relate npm run test:e2e:artifact
+NEXT_PUBLIC_BASE_PATH=/kuberelate npm run build
+NEXT_PUBLIC_BASE_PATH=/kuberelate npm run test:e2e:artifact
 ```
 
 ## CI/CD model
@@ -100,7 +100,7 @@ The production build uses `output: 'export'` and does not require a Node.js serv
 kept intentionally small and inspectable:
 
 1. `quality` runs formatting, linting, type checks, coverage, and the brand guard.
-2. `build` creates the `/kube-relate` static export and packages it once.
+2. `build` creates the `/kuberelate` static export and packages it once.
 3. `e2e-smoke` extracts and tests that exact Pages artifact in Chromium.
 4. `deploy` publishes the tested artifact only from a fully green public-repository run on `main`.
 

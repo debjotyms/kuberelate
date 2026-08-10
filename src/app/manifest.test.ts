@@ -26,11 +26,11 @@ describe('web manifest', () => {
   })
 
   it('prefixes paths for GitHub project Pages', () => {
-    process.env.NEXT_PUBLIC_BASE_PATH = '/kube-relate/'
+    process.env.NEXT_PUBLIC_BASE_PATH = '/kuberelate/'
 
     expect(manifest()).toMatchObject({
-      icons: [{ src: '/kube-relate/icon.svg' }],
-      start_url: '/kube-relate/',
+      icons: [{ src: '/kuberelate/icon.svg' }],
+      start_url: '/kuberelate/',
     })
   })
 })

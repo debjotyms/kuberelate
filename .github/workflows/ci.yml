@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NEXT_PUBLIC_BASE_PATH: /kube-relate
+  NEXT_PUBLIC_BASE_PATH: /kuberelate
 
 jobs:
   quality:

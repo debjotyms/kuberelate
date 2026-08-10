@@ -9,7 +9,7 @@
 | Area | Decision |
 | --- | --- |
 | Product | Standalone, privacy-first Kubernetes manifest relationship analyzer and learning tool |
-| Name | **KubeRelate** is the selected public product name; `kube-relate` is the repository slug |
+| Name | **KubeRelate** is the selected public product name; `kuberelate` is the repository slug |
 | Tagline | **See how your Kubernetes manifests connect.** |
 | Framework | Next.js App Router, TypeScript, static export only |
 | Runtime | Entire analyzer runs in the browser; no API routes, server actions, accounts, or remote processing |
@@ -821,7 +821,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
   3. **e2e-smoke** after build: serve the exported artifact and run Chromium smoke tests;
   4. **deploy** only when the repository is public and a `main` run passes every prior job: deploy the same tested `out/` artifact to the `github-pages` environment.
 - Use job-level least privilege, pinned official actions, npm caching, per-branch concurrency with stale-run cancellation, and failure-only Playwright artifacts.
-- Configure the project Pages base path (`/kube-relate`) through an explicit build environment value so local development remains at `/`.
+- Configure the project Pages base path (`/kuberelate`) through an explicit build environment value so local development remains at `/`.
 - Keep Pages deployment disabled while the repository is private. Require the quality/build/E2E checks on `main` after the first CI run, then enable Pages via Actions when the repository becomes public.
 
 **Tests required:** clean install, shell component, 404/static route behavior, production build, exported asset paths, direct page load, and prohibited-brand scan.
@@ -1258,10 +1258,10 @@ The earlier embedded-site integration is intentionally out of scope. KubeRelate 
 
 ### Initial deployment
 
-- Repository: `debjotyms/kube-relate`.
+- Repository: `debjotyms/kuberelate`.
 - Initial visibility: private while foundational work is verified; switch to public for the open-source launch.
 - Host: GitHub Pages through the gated Actions workflow.
-- Initial base path: `/kube-relate` for project Pages; local development stays at `/`.
+- Initial base path: `/kuberelate` for project Pages; local development stays at `/`.
 - Routes: `/` for the workbench, `/docs`, `/examples`, and static `?example=<id>` state.
 - Artifact: Next.js `out/`, built once after quality checks and used for E2E and deployment.
 

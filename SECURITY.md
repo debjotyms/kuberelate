@@ -10,7 +10,7 @@ versions exist.
 
 Do not disclose a suspected vulnerability in a public issue, discussion, pull request, or test
 fixture. When the repository is public, use a
-[private GitHub security advisory](https://github.com/debjotyms/kube-relate/security/advisories/new).
+[private GitHub security advisory](https://github.com/debjotyms/kuberelate/security/advisories/new).
 Until then, authorized collaborators can create a draft repository security advisory.
 
 Include enough information to reproduce and assess the issue without including real credentials,

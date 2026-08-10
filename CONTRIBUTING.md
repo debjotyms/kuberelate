@@ -18,8 +18,8 @@ Security vulnerabilities and sensitive privacy problems belong in a private repo
 KubeRelate uses Node.js 24 LTS and npm 11.
 
 ```bash
-git clone https://github.com/debjotyms/kube-relate.git
-cd kube-relate
+git clone https://github.com/debjotyms/kuberelate.git
+cd kuberelate
 nvm use
 npm ci
 npm run dev
@@ -52,7 +52,7 @@ npm run check:brand
 npm run test:e2e:artifact
 ```
 
-When testing the Pages artifact, build it with `NEXT_PUBLIC_BASE_PATH=/kube-relate` first.
+When testing the Pages artifact, build it with `NEXT_PUBLIC_BASE_PATH=/kuberelate` first.
 
 ## Commits and pull requests
 

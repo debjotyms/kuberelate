@@ -56,12 +56,12 @@ Status convention:
 - [x] Avoid runtime image optimization or configure static-compatible local images.
 - [x] Pin Node.js 24 LTS in `.nvmrc`, `package.json`, and CI.
 - [x] Use npm and commit `package-lock.json`.
-- [x] Add base-path configuration for local `/` and GitHub project Pages `/kube-relate`.
+- [x] Add base-path configuration for local `/` and GitHub project Pages `/kuberelate`.
 - [x] Confirm no API routes, server actions, middleware, authentication, database, or remote manifest processing exist.
 
 ### Basic product shell
 
-- [x] Select `KubeRelate` as the public name after preliminary package, domain, source-host, and trademark collision screening; use `kube-relate` as the repository slug.
+- [x] Select `KubeRelate` as the public name after preliminary package, domain, source-host, and trademark collision screening; use `kuberelate` as the repository slug.
 - [x] Centralize product name/tagline/URLs so a pre-release rename does not touch domain logic.
 - [x] Add semantic header/main structure and skip link.
 - [x] Add the selected product name, tagline, privacy statement, and static-analysis disclaimer.
@@ -115,7 +115,7 @@ Status convention:
 - [x] Only a fully green public `main` revision can reach the deploy job.
 - [ ] The public static shell works at the configured Pages URL and contains no prohibited legacy branding.
 
-Private CI evidence: [initial `main` workflow run](https://github.com/debjotyms/kube-relate/actions/runs/31407802154).
+Private CI evidence: [initial `main` workflow run](https://github.com/debjotyms/kuberelate/actions/runs/31407802154).
 The `Quality`, `Static export`, and `Chromium smoke` checks are required on `main`; force pushes and
 branch deletion are disabled. Pages activation, deployment, and public-URL verification intentionally
 wait until the repository is made public.
