@@ -1,7 +1,7 @@
 # KubeRelate Delivery Checklist
 
-> Current state: Milestone 3 implementation complete locally; CI verification pending
-> Active milestone: **Milestone 3 — Service selector vertical slice**
+> Current state: Milestone 3 Service selector vertical slice complete
+> Active milestone: **Milestone 4 — Reusable interactive topology**
 > Detailed rationale and architecture: [PLAN.md](./PLAN.md)
 
 ## How to use this tracker
@@ -260,14 +260,15 @@ V0 bundle measurement (2026-08-10): the lazy analyzer/editor chunk is approximat
 
 **Milestone gate**
 
-- [ ] The exact first-slice acceptance flow in `PLAN.md` section 12 passes locally and in CI.
+- [x] The exact first-slice acceptance flow in `PLAN.md` section 12 passes locally and in CI.
 
 Milestone 3 evidence: selector, LabelSelector, relationship, diagnostic, graph-adapter, component,
 and production-browser tests cover the exact broken fixture plus working, subset, missing-key,
 different-value, cross-namespace, Pod, Deployment-template, multiple-target, selectorless, and
 `ExternalName` cases. The local suite passes with 48 Vitest tests and eight Chromium static-export
 tests, including axe and keyboard-only issue-to-topology-to-source flows.
-The milestone gate remains open until those checks pass in GitHub Actions for the resulting revision.
+GitHub Actions evidence: [CI / Pages run 31417025740](https://github.com/debjotyms/kuberelate/actions/runs/31417025740)
+passed Quality, Static export, and Chromium smoke for commit `a5e76e4`.
 
 Milestone 3 bundle measurement (2026-08-10): the lazy analyzer/editor chunk is approximately
 562 KiB raw and 176 KiB gzip, a raw increase of about 7.1% from the V0 baseline and below the 10%

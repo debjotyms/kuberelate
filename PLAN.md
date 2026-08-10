@@ -1,6 +1,6 @@
 # KubeRelate Implementation Plan
 
-> Status: Milestone 3 implementation complete locally; CI verification pending
+> Status: Milestone 3 complete; Milestone 4 reusable interactive topology active
 > Last updated: 2026-08-10
 > Companion tracker: [CHECKLIST.md](./CHECKLIST.md)
 
