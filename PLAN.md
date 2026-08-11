@@ -1,6 +1,6 @@
 # KubeRelate Implementation Plan
 
-> Status: Milestone 4 complete; Milestone 5 core traffic/configuration/storage diagnostics active
+> Status: Milestone 5 Ingress slice complete; reusable Pod-spec dependency traversal active
 > Last updated: 2026-08-11
 > Companion tracker: [CHECKLIST.md](./CHECKLIST.md)
 
@@ -895,6 +895,8 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 **Complete when:** adding a new relationship rule requires no topology component rewrite.
 
 ### Phase 5 — Ingress vertical slice
+
+**Status:** Complete (2026-08-11).
 
 **Objective:** explain and validate Ingress to Service routing.
 

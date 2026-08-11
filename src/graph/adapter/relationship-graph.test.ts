@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   brokenServiceSelectorExample,
+  missingIngressServiceExample,
+  validIngressBackendExample,
   workingServiceSelectorExample,
 } from '@/content/examples/resource-inventory'
 import { analyzeManifest } from '@/domain/parser/analyze-manifest'
@@ -93,6 +95,55 @@ describe('relationship graph adapter', () => {
       certainty: 'explicit',
       verb: 'selects',
       state: 'resolved',
+    })
+  })
+
+  it('adapts an explicit Ingress route without duplicating its collected evidence paths', () => {
+    const analysis = analyzeManifest(validIngressBackendExample.source)
+    const graph = buildTopologyGraph(
+      analysis.resources,
+      analysis.relationships,
+      analysis.diagnostics,
+    )
+
+    expect(analysis.relationships[0]).toMatchObject({
+      type: 'ingress-routes-to-service',
+      evidence: { routes: [{}, {}] },
+    })
+    expect(graph.edges).toHaveLength(1)
+    expect(graph.edges[0]).toMatchObject({
+      certainty: 'explicit',
+      resolution: 'resolved',
+      verb: 'routes to',
+      label: 'routes to · explicit',
+    })
+    expect(buildRelationshipList(graph)[0]).toMatchObject({
+      certainty: 'explicit',
+      state: 'resolved',
+      verb: 'routes to',
+    })
+  })
+
+  it('uses a generic missing-Service placeholder for an unresolved Ingress route', () => {
+    const analysis = analyzeManifest(missingIngressServiceExample.source)
+    const graph = buildTopologyGraph(
+      analysis.resources,
+      analysis.relationships,
+      analysis.diagnostics,
+    )
+
+    expect(graph.nodes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'unresolved',
+          name: 'Missing Service',
+          description: 'Service demo/api',
+        }),
+      ]),
+    )
+    expect(graph.edges[0]).toMatchObject({
+      resolution: 'missing',
+      label: 'routes to · no supplied match',
     })
   })
 })

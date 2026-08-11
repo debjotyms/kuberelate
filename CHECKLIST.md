@@ -1,6 +1,6 @@
 # KubeRelate Delivery Checklist
 
-> Current state: Milestone 4 reusable interactive topology complete
+> Current state: Milestone 5 Ingress-to-Service slice complete; reusable Pod-spec traversal next
 > Active milestone: **Milestone 5 — Ingress, configuration, Secret, and storage**
 > Detailed rationale and architecture: [PLAN.md](./PLAN.md)
 
@@ -321,13 +321,18 @@ the initial HTML. The complete `/kuberelate` static export is approximately 1.8 
 
 ### Ingress to Service
 
-- [ ] Extract v1 default and rule-path Service backends.
-- [ ] Resolve Service only in the Ingress namespace.
-- [ ] Validate named and numeric Service ports.
-- [ ] Preserve multiple backend evidence paths without duplicate edge clutter.
-- [ ] Handle resource backends as unsupported/generic, not missing Services.
-- [ ] Add valid, missing-Service, and missing-port examples.
-- [ ] Add source jumps, inspectors, commands, and tests for all cases.
+- [x] Extract v1 default and rule-path Service backends.
+- [x] Resolve Service only in the Ingress namespace.
+- [x] Validate named and numeric Service ports.
+- [x] Preserve multiple backend evidence paths without duplicate edge clutter.
+- [x] Handle resource backends as unsupported/generic, not missing Services.
+- [x] Add valid, missing-Service, and missing-port examples.
+- [x] Add source jumps, inspectors, commands, and tests for all cases.
+
+Ingress slice local evidence (2026-08-11): the Node.js 24 quality gate passes with 72 Vitest tests,
+and the exact `/kuberelate` export passes nine Chromium tests. The analyzer benchmark covers all six
+built-in examples (2,711 source bytes) across 1,500 warmed samples with a 0.205 ms median and
+0.349 ms p95.
 
 ### Reusable Pod-spec traversal
 

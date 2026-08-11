@@ -10,9 +10,9 @@ learning tool. It is designed to make selectors, references, namespaces, ports, 
 storage dependencies easier to understand without connecting to a cluster or uploading YAML.
 
 > [!IMPORTANT]
-> KubeRelate is in early development. The analyzer now explains the first complete relationship
-> slice: Service selectors compared with supplied Pods and Deployment Pod templates. Broader
-> Kubernetes relationship coverage is still in progress.
+> KubeRelate is in early development. The analyzer currently explains Service selectors and
+> networking.k8s.io/v1 Ingress-to-Service backends. Configuration, Secret, storage, and identity
+> relationship coverage is still in progress.
 
 ## Why KubeRelate
 
@@ -34,12 +34,13 @@ the evidence without pretending to know live cluster state.
 - Deterministic multi-document parsing, normalization, scope-aware identity, and safety limits
 - Ordered resource and issue lists with partial-result recovery for malformed neighboring documents
 - Namespace-correct Service selector matching for Pods and Deployment Pod templates
+- Namespace-correct Ingress Service resolution with named and numeric port validation
 - Resolved and unresolved topology views with a full semantic relationship-list equivalent
-- Evidence-based `KG-SVC-001` guidance, source jumps, inspectors, and cluster verification commands
+- Evidence-based selector and backend guidance, source jumps, inspectors, and verification commands
 
 The detailed [implementation plan](./PLAN.md) and [delivery checklist](./CHECKLIST.md) track current
-scope and evidence. Planned V1 work now continues with reusable interactive topology, additional
-relationship rules, deterministic explanations, and curated troubleshooting examples.
+scope and evidence. Planned V1 work now continues with reusable Pod-spec dependency traversal,
+additional relationship rules, deterministic explanations, and curated troubleshooting examples.
 
 ## Current analyzer behavior
 
@@ -59,10 +60,16 @@ relationship rules, deterministic explanations, and curated troubleshooting exam
 - Reports an unmatched selector as warning `KG-SVC-001` with input-scoped certainty, safe comparison
   evidence, source ranges, and namespace-correct verification commands.
 - Validates a Deployment selector against its own Pod-template labels as a separate definite issue.
+- Extracts networking.k8s.io/v1 default and rule-path Service backends, deduplicating repeated
+  Service/port edges while preserving every source path as evidence.
+- Resolves Ingress Services only in the Ingress namespace and validates backend port names against
+  `spec.ports[].name` and numbers against `spec.ports[].port`.
+- Reports missing Services (`KG-ING-001`), missing Service ports (`KG-ING-002`), ambiguous duplicate
+  Services (`KG-ING-003`), and unsupported resource backends (`KG-ING-004`) without guessing.
 
 The analyzer still validates only the minimal Kubernetes resource envelope (`apiVersion`, `kind`,
 and `metadata.name`); it does not perform complete Kubernetes schema validation. Relationship
-coverage is currently limited to the Service selector vertical slice.
+coverage is currently limited to Service selectors and Ingress Service backends.
 
 ## Privacy and analysis boundary
 

@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest'
 
 import {
   brokenServiceSelectorExample,
+  missingIngressPortExample,
   resourceInventoryExample,
+  validIngressBackendExample,
 } from '@/content/examples/resource-inventory'
 
 import { ManifestWorkbench } from './manifest-workbench'
@@ -141,6 +143,62 @@ describe('ManifestWorkbench', () => {
         }),
       ).toHaveFocus(),
     )
+  })
+
+  it('keeps deduplicated Ingress route evidence in the map, list, inspector, and source actions', async () => {
+    const user = userEvent.setup()
+    render(<ManifestWorkbench initialSource={validIngressBackendExample.source} />)
+
+    const relationshipEdge = await screen.findByRole('group', {
+      name: /Ingress demo\/storefront routes 2 backend declarations to Service demo\/storefront named port http.*explicit relationship, resolved/i,
+    })
+
+    expect(screen.queryByRole('region', { name: 'Issues' })).not.toBeInTheDocument()
+    relationshipEdge.focus()
+    await user.keyboard('{Enter}')
+
+    const inspector = screen.getByRole('region', { name: 'Ingress routes to Service' })
+    await waitFor(() =>
+      expect(
+        within(inspector).getByRole('heading', { name: 'Ingress routes to Service' }),
+      ).toHaveFocus(),
+    )
+    expect(inspector).toHaveTextContent('2 backend declarations')
+    expect(inspector).toHaveTextContent('Declared on the supplied Service')
+    expect(inspector).toHaveTextContent('kubectl get service storefront -n demo -o yaml')
+    expect(within(inspector).getAllByRole('button', { name: /View Ingress backend/ })).toHaveLength(
+      2,
+    )
+
+    await user.click(within(inspector).getByRole('button', { name: /View Ingress backend 2/ }))
+    expect(screen.getByRole('textbox', { name: 'Kubernetes YAML manifest editor' })).toHaveFocus()
+
+    await user.click(screen.getByRole('button', { name: 'Relationship list' }))
+    const list = screen.getByLabelText('Semantic relationship list')
+    expect(within(list).getAllByRole('button')).toHaveLength(1)
+    expect(list).toHaveTextContent('routes to · explicit · resolved')
+  })
+
+  it('connects a missing Ingress port issue to both backend and Service source evidence', async () => {
+    const user = userEvent.setup()
+    render(<ManifestWorkbench initialSource={missingIngressPortExample.source} />)
+
+    const issueTitle = screen.getByText('Ingress backend Service port is missing')
+    const issue = issueTitle.closest('article')!
+    expect(issue).toHaveAttribute('data-diagnostic-code', 'KG-ING-002')
+
+    await user.click(within(issue).getByRole('button', { name: 'Inspect issue' }))
+    const inspector = screen.getByRole('region', {
+      name: 'Ingress backend Service port is missing',
+    })
+    expect(inspector).toHaveTextContent('named port admin')
+    expect(within(inspector).getByRole('button', { name: 'View backend' })).toBeInTheDocument()
+    expect(
+      within(inspector).getByRole('button', { name: 'View Service ports' }),
+    ).toBeInTheDocument()
+
+    await user.click(within(inspector).getByRole('button', { name: 'View Service ports' }))
+    expect(screen.getByRole('textbox', { name: 'Kubernetes YAML manifest editor' })).toHaveFocus()
   })
 
   it('shows Secret keys in the inspector while keeping values out of results', async () => {

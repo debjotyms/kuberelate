@@ -18,9 +18,9 @@ describe('HomePage', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Your manifests never leave your browser.')).toBeInTheDocument()
     expect(screen.getByText('Static evidence, not runtime guesses.')).toBeInTheDocument()
-    expect(screen.getByText('Milestone 4 · Interactive topology')).toBeInTheDocument()
+    expect(screen.getByText('Milestone 5 · Ingress routing')).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 2, name: 'See how your Service selectors connect.' }),
+      screen.getByRole('heading', { level: 2, name: 'Trace traffic from Ingress to Service.' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Primary navigation' })).toBeInTheDocument()
     expect(product.name).toBe('KubeRelate')

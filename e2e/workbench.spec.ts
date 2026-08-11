@@ -118,6 +118,43 @@ test('shows a working selector in the map and equivalent relationship list', asy
   await expect(list.getByRole('button')).toHaveAttribute('aria-pressed', 'true')
 })
 
+test('explains a missing Ingress Service through topology, inspector, list, and source', async ({
+  page,
+}) => {
+  await page.goto(appPath)
+
+  const workbench = page.locator('#workbench')
+  const editor = workbench.getByRole('textbox', { name: 'Kubernetes YAML manifest editor' })
+  await workbench.getByLabel('Example').selectOption('missing-ingress-service')
+  await workbench.getByRole('button', { name: 'Load example' }).click()
+
+  await expect(workbench.locator('[data-analysis-status="partial"]')).toBeVisible()
+  const issue = workbench.locator('[data-diagnostic-code="KG-ING-001"]')
+  await expect(issue).toContainText('Ingress backend Service is not supplied')
+  await expect(workbench.getByText('Missing Service', { exact: true })).toBeVisible()
+
+  const relationshipEdge = workbench.getByRole('group', {
+    name: /Ingress demo\/api references missing Service demo\/api port 80.*explicit relationship, missing/i,
+  })
+  await relationshipEdge.focus()
+  await page.keyboard.press('Enter')
+  const inspector = workbench.getByRole('region', { name: 'Ingress routes to Service' })
+  await expect(inspector.getByRole('heading', { name: 'Ingress routes to Service' })).toBeFocused()
+  await expect(inspector).toContainText('Service not supplied')
+  await expect(inspector).toContainText('kubectl get service api -n demo -o yaml')
+
+  await workbench.getByRole('button', { name: 'Relationship list' }).click()
+  const list = workbench.getByLabel('Semantic relationship list')
+  await expect(list.getByText('No supplied match')).toBeVisible()
+  await expect(list).toContainText('routes to · explicit · missing')
+
+  await issue.getByRole('button', { name: 'View backend' }).click()
+  await expect(editor).toBeFocused()
+
+  const a11y = await new AxeBuilder({ page }).include('#workbench').analyze()
+  expect(a11y.violations).toEqual([])
+})
+
 test('keeps the resource inventory example available', async ({ page }) => {
   await page.goto(appPath)
 
@@ -208,6 +245,9 @@ stringData:
   expect(validA11y.violations).toEqual([])
 
   await page.emulateMedia({ colorScheme: 'dark' })
+  await expect(
+    workbench.getByRole('button', { name: 'Focus diagram by collapsing YAML editor' }),
+  ).toHaveCSS('color', 'rgb(179, 201, 217)')
   const darkA11y = await new AxeBuilder({ page }).include('#workbench').analyze()
   expect(darkA11y.violations).toEqual([])
   await page.emulateMedia({ colorScheme: 'light' })

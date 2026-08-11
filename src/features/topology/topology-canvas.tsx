@@ -181,7 +181,7 @@ function RelationshipEdge({
     targetY,
     borderRadius: 12,
   })
-  const missing = data.model.resolution === 'missing'
+  const unresolved = data.model.resolution !== 'resolved'
 
   return (
     <>
@@ -193,8 +193,8 @@ function RelationshipEdge({
         markerEnd={markerEnd}
         path={path}
         style={{
-          stroke: missing ? 'var(--kg-warning)' : 'var(--kg-brand-strong)',
-          strokeDasharray: missing || data.model.certainty === 'inferred' ? '7 5' : undefined,
+          stroke: unresolved ? 'var(--kg-warning)' : 'var(--kg-brand-strong)',
+          strokeDasharray: unresolved || data.model.certainty === 'inferred' ? '7 5' : undefined,
           strokeWidth: selected ? 3 : 2,
         }}
       />
@@ -338,7 +338,7 @@ function TopologyCanvasInner({ graph }: TopologyCanvasProps) {
         selected: selectedRelationshipId === model.relationshipId,
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: model.resolution === 'missing' ? 'var(--kg-warning)' : 'var(--kg-brand-strong)',
+          color: model.resolution === 'resolved' ? 'var(--kg-brand-strong)' : 'var(--kg-warning)',
           width: 18,
           height: 18,
         },

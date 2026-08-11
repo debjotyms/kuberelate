@@ -2,6 +2,7 @@ import * as z from 'zod/mini'
 import {
   isMap,
   isNode,
+  isScalar,
   isSeq,
   LineCounter,
   parseAllDocuments,
@@ -14,6 +15,7 @@ import {
 import { buildResourceIndex, emptyResourceIndex } from '@/domain/indexes/resource-index'
 import { createDiagnostic } from '@/domain/diagnostics/diagnostic'
 import { deploymentSelectorDiagnostics } from '@/domain/diagnostics/rules/deployment-selector'
+import { ingressBackendDiagnostics } from '@/domain/diagnostics/rules/ingress-backend'
 import { serviceSelectorDiagnostics } from '@/domain/diagnostics/rules/service-selector'
 import {
   DEFAULT_ANALYSIS_LIMITS,
@@ -30,6 +32,7 @@ import {
   type SourceRange,
 } from '@/domain/model/analysis'
 import { getResourceDefinition } from '@/domain/resources/registry'
+import { ingressRoutesToServiceRelationships } from '@/domain/relationships/rules/ingress-routes-to-service'
 import { serviceSelectsWorkloadRelationships } from '@/domain/relationships/rules/service-selects-workload'
 
 import { findNodeAtPath, toSourceRange } from './source'
@@ -157,31 +160,61 @@ function occurrenceId(
   return `resource:${documentIndex}:${listItemIndex ?? 'root'}:${key}` as ResourceId
 }
 
+function sourcePath(segments: readonly (string | number)[]): string {
+  return segments.reduce<string>((path, segment) => {
+    if (typeof segment === 'number') {
+      return `${path}[${segment}]`
+    }
+
+    return path ? `${path}.${segment}` : segment
+  }, '')
+}
+
+function collectFieldRanges(
+  node: Node | undefined,
+  lineCounter: LineCounter,
+  segments: readonly (string | number)[],
+  ranges: Map<string, SourceRange>,
+): void {
+  if (!node) {
+    return
+  }
+
+  if (segments.length > 0) {
+    const range = toSourceRange(node.range, lineCounter)
+
+    if (range) {
+      ranges.set(sourcePath(segments), range)
+    }
+  }
+
+  if (isMap(node)) {
+    for (const pair of node.items) {
+      if (!isScalar(pair.key) || !isNode(pair.value)) {
+        continue
+      }
+
+      const key = typeof pair.key.value === 'string' ? pair.key.value : String(pair.key.value)
+      collectFieldRanges(pair.value, lineCounter, [...segments, key], ranges)
+    }
+    return
+  }
+
+  if (isSeq(node)) {
+    node.items.forEach((item, index) => {
+      if (isNode(item)) {
+        collectFieldRanges(item, lineCounter, [...segments, index], ranges)
+      }
+    })
+  }
+}
+
 function fieldRanges(
   node: Node | undefined,
   lineCounter: LineCounter,
 ): ReadonlyMap<string, SourceRange> {
   const ranges = new Map<string, SourceRange>()
-  const paths: readonly [string, readonly (string | number)[]][] = [
-    ['apiVersion', ['apiVersion']],
-    ['kind', ['kind']],
-    ['metadata.name', ['metadata', 'name']],
-    ['metadata.namespace', ['metadata', 'namespace']],
-    ['metadata.labels', ['metadata', 'labels']],
-    ['spec.type', ['spec', 'type']],
-    ['spec.selector', ['spec', 'selector']],
-    ['spec.selector.matchLabels', ['spec', 'selector', 'matchLabels']],
-    ['spec.selector.matchExpressions', ['spec', 'selector', 'matchExpressions']],
-    ['spec.template.metadata.labels', ['spec', 'template', 'metadata', 'labels']],
-  ]
-
-  for (const [name, path] of paths) {
-    const range = toSourceRange(findNodeAtPath(node ?? null, path)?.range, lineCounter)
-
-    if (range) {
-      ranges.set(name, range)
-    }
-  }
+  collectFieldRanges(node, lineCounter, [], ranges)
 
   return ranges
 }
@@ -192,6 +225,7 @@ function normalizeCandidate(
   state: MutableAnalysis,
 ): KubernetesResource | undefined {
   const sourceRange = toSourceRange(candidate.node?.range, lineCounter)
+  const candidateFieldRanges = fieldRanges(candidate.node, lineCounter)
   const parsed = envelopeSchema.safeParse(candidate.raw)
 
   if (!parsed.success) {
@@ -238,7 +272,7 @@ function normalizeCandidate(
         title: 'Invalid apiVersion',
         message: 'apiVersion must be either a core version such as v1 or group/version.',
         documentIndex: candidate.documentIndex,
-        range: fieldRanges(candidate.node, lineCounter).get('apiVersion') ?? sourceRange,
+        range: candidateFieldRanges.get('apiVersion') ?? sourceRange,
       }),
     )
     return undefined
@@ -264,7 +298,7 @@ function normalizeCandidate(
         title: 'Cluster-scoped resource declares a namespace',
         message: `${kind} is cluster-scoped, so metadata.namespace is not part of its identity.`,
         documentIndex: candidate.documentIndex,
-        range: fieldRanges(candidate.node, lineCounter).get('metadata.namespace') ?? sourceRange,
+        range: candidateFieldRanges.get('metadata.namespace') ?? sourceRange,
         resourceIds: [id],
       }),
     )
@@ -287,7 +321,7 @@ function normalizeCandidate(
       documentIndex: candidate.documentIndex,
       listItemIndex: candidate.listItemIndex,
       range: sourceRange,
-      fieldRanges: fieldRanges(candidate.node, lineCounter),
+      fieldRanges: candidateFieldRanges,
     },
     support: resolved.support,
     raw: candidate.raw,
@@ -567,12 +601,16 @@ function resultFrom(
   analyzedDocuments: number,
 ): AnalysisResult {
   const index = buildResourceIndex(resources)
-  const relationships = serviceSelectsWorkloadRelationships(resources, index)
+  const relationships = [
+    ...serviceSelectsWorkloadRelationships(resources, index),
+    ...ingressRoutesToServiceRelationships(resources, index),
+  ]
   const sortedDiagnostics = sortDiagnostics([
     ...diagnostics,
     ...duplicateDiagnostics(resources, index),
     ...deploymentSelectorDiagnostics(resources),
     ...serviceSelectorDiagnostics(resources, relationships),
+    ...ingressBackendDiagnostics(resources, relationships),
   ])
 
   return {

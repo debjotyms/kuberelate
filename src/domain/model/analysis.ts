@@ -51,11 +51,11 @@ export interface KubernetesResource {
 
 export type AnalysisDiagnosticSeverity = 'error' | 'warning' | 'info'
 
-export type AnalysisDiagnosticCategory = 'parser' | 'identity' | 'limit' | 'selector'
+export type AnalysisDiagnosticCategory = 'parser' | 'identity' | 'limit' | 'selector' | 'reference'
 
 export type StaticCertainty = 'definite' | 'input-scoped' | 'informational'
 
-export type SafeEvidenceKind = 'selector' | 'labels' | 'namespace' | 'resource'
+export type SafeEvidenceKind = 'selector' | 'labels' | 'namespace' | 'resource' | 'backend' | 'port'
 
 export interface SafeEvidenceItem {
   readonly kind: SafeEvidenceKind
@@ -124,13 +124,18 @@ export interface ResourceIndex {
   readonly sourceOrder: readonly ResourceId[]
 }
 
-export type RelationshipType = 'service-selects-workload'
+export type RelationshipType = 'service-selects-workload' | 'ingress-routes-to-service'
 
 export type RelationshipCertainty = 'explicit' | 'inferred'
 
 export type RelationshipResolution =
   | { readonly state: 'resolved'; readonly target: ResourceId }
   | { readonly state: 'missing'; readonly expected: { readonly description: string } }
+  | {
+      readonly state: 'ambiguous'
+      readonly candidates: readonly ResourceId[]
+      readonly expected: { readonly description: string }
+    }
 
 export interface RelationshipComparison {
   readonly target: ResourceId
@@ -140,7 +145,7 @@ export interface RelationshipComparison {
   readonly range?: SourceRange
 }
 
-export interface RelationshipEvidence {
+export interface ServiceSelectorRelationshipEvidence {
   readonly sourcePath: 'spec.selector'
   readonly summary: string
   readonly selector: Readonly<Record<string, string>>
@@ -150,14 +155,66 @@ export interface RelationshipEvidence {
   readonly comparisons: readonly RelationshipComparison[]
 }
 
-export interface ResourceRelationship {
+export type IngressBackendPort =
+  | { readonly type: 'name'; readonly value: string }
+  | { readonly type: 'number'; readonly value: number }
+
+export interface IngressRouteEvidence {
+  readonly sourcePath: string
+  readonly serviceNamePath: string
+  readonly servicePortPath: string
+  readonly description: string
+  readonly sourceRange?: SourceRange
+  readonly serviceNameRange?: SourceRange
+  readonly servicePortRange?: SourceRange
+}
+
+export interface ServicePortEvidence {
+  readonly sourcePath: string
+  readonly name?: string
+  readonly port?: number
+  readonly range?: SourceRange
+}
+
+export type IngressPortResolution = 'resolved' | 'missing' | 'service-missing' | 'service-ambiguous'
+
+export interface IngressRoutesToServiceEvidence {
+  readonly sourcePath: string
+  readonly summary: string
+  readonly backendServiceName: string
+  readonly backendPort: IngressBackendPort
+  readonly routes: readonly IngressRouteEvidence[]
+  readonly portResolution: IngressPortResolution
+  readonly servicePorts: readonly ServicePortEvidence[]
+  readonly sourceRange?: SourceRange
+  readonly targetRange?: SourceRange
+  readonly targetPortPath?: string
+  readonly targetPortRange?: SourceRange
+}
+
+export interface ServiceSelectsWorkloadRelationship {
   readonly id: string
   readonly source: ResourceId
-  readonly type: RelationshipType
+  readonly type: 'service-selects-workload'
   readonly certainty: RelationshipCertainty
   readonly resolution: RelationshipResolution
-  readonly evidence: RelationshipEvidence
+  readonly evidence: ServiceSelectorRelationshipEvidence
 }
+
+export interface IngressRoutesToServiceRelationship {
+  readonly id: string
+  readonly source: ResourceId
+  readonly type: 'ingress-routes-to-service'
+  readonly certainty: 'explicit'
+  readonly resolution: RelationshipResolution
+  readonly evidence: IngressRoutesToServiceEvidence
+}
+
+export type RelationshipEvidence =
+  ServiceSelectorRelationshipEvidence | IngressRoutesToServiceEvidence
+
+export type ResourceRelationship =
+  ServiceSelectsWorkloadRelationship | IngressRoutesToServiceRelationship
 
 export interface AnalysisSummary {
   readonly resources: number

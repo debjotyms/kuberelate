@@ -3,6 +3,7 @@ import type {
   AnalysisDiagnosticSeverity,
   KubernetesResource,
   RelationshipCertainty,
+  RelationshipResolution,
   ResourceId,
   ResourceRelationship,
 } from '@/domain/model/analysis'
@@ -27,7 +28,7 @@ export interface UnresolvedTopologyNode {
   readonly id: string
   readonly type: 'unresolved'
   readonly relationshipId: string
-  readonly name: 'No matching workload'
+  readonly name: string
   readonly description: string
   readonly status: 'missing'
   readonly ariaLabel: string
@@ -51,7 +52,7 @@ export interface TopologyEdge {
   readonly target: string
   readonly verb: string
   readonly certainty: RelationshipCertainty
-  readonly resolution: 'resolved' | 'missing'
+  readonly resolution: RelationshipResolution['state']
   readonly label: string
   readonly summary: string
   readonly ariaLabel: string
@@ -66,7 +67,7 @@ export interface RelationshipListItem {
   readonly id: string
   readonly source: ResourceId
   readonly target?: ResourceId
-  readonly state: 'resolved' | 'missing'
+  readonly state: RelationshipResolution['state']
   readonly certainty: RelationshipCertainty
   readonly verb: string
   readonly summary: string
@@ -157,7 +158,23 @@ function relationshipVerb(relationship: ResourceRelationship): string {
   switch (relationship.type) {
     case 'service-selects-workload':
       return 'selects'
+    case 'ingress-routes-to-service':
+      return 'routes to'
   }
+}
+
+function unresolvedTargetName(relationship: ResourceRelationship): string {
+  if (relationship.type === 'service-selects-workload') {
+    return 'No matching workload'
+  }
+
+  return relationship.resolution.state === 'ambiguous'
+    ? 'Multiple matching Services'
+    : 'Missing Service'
+}
+
+function unresolvedStateLabel(state: Exclude<RelationshipResolution['state'], 'resolved'>): string {
+  return state === 'ambiguous' ? 'multiple supplied matches' : 'no supplied match'
 }
 
 function statusLabel(status: TopologyNodeStatus): string {
@@ -239,12 +256,12 @@ export function buildTopologyGraph(
         : missingNodeId(relationship)
     const verb = relationshipVerb(relationship)
 
-    if (relationship.resolution.state === 'missing') {
+    if (relationship.resolution.state !== 'resolved') {
       unresolvedNodes.push({
         id: target,
         type: 'unresolved',
         relationshipId: relationship.id,
-        name: 'No matching workload',
+        name: unresolvedTargetName(relationship),
         description: relationship.resolution.expected.description,
         status: 'missing',
         ariaLabel: `Unresolved target. ${relationship.resolution.expected.description}.`,
@@ -262,7 +279,7 @@ export function buildTopologyGraph(
       label:
         relationship.resolution.state === 'resolved'
           ? `${verb} · ${relationship.certainty}`
-          : `${verb} · no supplied match`,
+          : `${verb} · ${unresolvedStateLabel(relationship.resolution.state)}`,
       summary: relationship.evidence.summary,
       ariaLabel: `${relationship.evidence.summary} ${relationship.certainty} relationship, ${relationship.resolution.state}.`,
     })

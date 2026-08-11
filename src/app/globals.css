@@ -1302,7 +1302,8 @@ button {
   white-space: nowrap;
 }
 
-.topology-edge-label-missing {
+.topology-edge-label-missing,
+.topology-edge-label-ambiguous {
   border-style: dashed;
   border-color: var(--kg-warning);
   color: var(--kg-warning);
@@ -1480,7 +1481,8 @@ button.connection-resource {
   font-weight: 900;
 }
 
-.relationship-state-missing {
+.relationship-state-missing,
+.relationship-state-ambiguous {
   background: color-mix(in srgb, var(--kg-warning) 14%, transparent);
   color: var(--kg-warning);
 }
@@ -1524,6 +1526,7 @@ button.connection-resource {
 }
 
 .relationship-state-label.relationship-state-missing,
+.relationship-state-label.relationship-state-ambiguous,
 .issue-label-warning {
   background: color-mix(in srgb, var(--kg-warning) 13%, transparent);
   color: var(--kg-warning);

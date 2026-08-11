@@ -6,6 +6,7 @@ import {
   brokenServiceSelectorExample,
   manifestExamples,
 } from '@/content/examples/resource-inventory'
+import { shellArgument } from '@/domain/diagnostics/commands'
 import type {
   AnalysisDiagnostic,
   AnalysisResult,
@@ -17,6 +18,7 @@ import type {
 } from '@/domain/model/analysis'
 import { analyzeManifest } from '@/domain/parser/analyze-manifest'
 import { projectResourceForInspector } from '@/domain/resources/safe-inspector'
+import { formatIngressBackendPort } from '@/domain/resources/ingress'
 import { formatLabelMap } from '@/domain/selectors/equality-selector'
 import { ManifestEditor, type EditorJumpRequest } from '@/features/editor/manifest-editor'
 import { TopologyCanvasLoader } from '@/features/topology/topology-canvas-loader'
@@ -104,7 +106,31 @@ function locationDescription(range: SourceRange | undefined, documentIndex?: num
 }
 
 function evidenceActionLabel(evidence: SafeEvidenceItem): string {
-  return evidence.kind === 'selector' ? 'View selector' : 'Compare workload labels'
+  switch (evidence.kind) {
+    case 'selector':
+      return 'View selector'
+    case 'labels':
+      return 'Compare workload labels'
+    case 'backend':
+      return 'View backend'
+    case 'port':
+      return 'View Service ports'
+    case 'namespace':
+      return 'View namespace'
+    case 'resource':
+      return 'View resource'
+  }
+}
+
+function relationshipStateLabel(state: RelationshipListItem['state']): string {
+  switch (state) {
+    case 'resolved':
+      return 'Resolved match'
+    case 'missing':
+      return 'No supplied match'
+    case 'ambiguous':
+      return 'Multiple supplied matches'
+  }
 }
 
 interface ResourceCardProps {
@@ -248,7 +274,11 @@ function DiagnosticCard({
                   onClick={() => onJump(diagnostic.range!)}
                   type="button"
                 >
-                  {diagnostic.code === 'KG-SVC-001' ? 'View selector' : 'View in YAML'}
+                  {diagnostic.code === 'KG-SVC-001'
+                    ? 'View selector'
+                    : diagnostic.code.startsWith('KG-ING-')
+                      ? 'View backend'
+                      : 'View in YAML'}
                   <span aria-hidden="true">→</span>
                 </button>
               ) : null}
@@ -289,7 +319,7 @@ function TopologyPanel({ graph, relationshipList }: TopologyPanelProps) {
       <div className="topology-heading">
         <div>
           <h4 id="topology-title">Topology</h4>
-          <p>Service-to-workload relationships inferred from supplied labels.</p>
+          <p>Namespace-correct selectors and explicit references from the supplied YAML.</p>
         </div>
         <div aria-label="Topology view" className="view-switcher" role="group">
           <button aria-pressed={view === 'map'} onClick={() => setView('map')} type="button">
@@ -322,9 +352,7 @@ function TopologyPanel({ graph, relationshipList }: TopologyPanelProps) {
                       {item.state === 'resolved' ? '✓' : '!'}
                     </span>
                     <span>
-                      <strong>
-                        {item.state === 'resolved' ? 'Resolved match' : 'No supplied match'}
-                      </strong>
+                      <strong>{relationshipStateLabel(item.state)}</strong>
                       <span>{item.summary}</span>
                       <small>
                         {item.verb} · {item.certainty} · {item.state}
@@ -472,6 +500,140 @@ function Inspector({ analysis, selection, onInspectRelationship, onJump }: Inspe
     const relatedDiagnostic = analysis.diagnostics.find((diagnostic) =>
       diagnostic.relationshipIds.includes(relationship.id),
     )
+
+    if (relationship.type === 'ingress-routes-to-service') {
+      const ingress = resourceById.get(relationship.source)
+      const namespace =
+        ingress?.identity.scope.type === 'namespaced'
+          ? ingress.identity.scope.namespace
+          : 'unknown namespace'
+      const state = relationship.resolution.state
+      const portMissing = relationship.evidence.portResolution === 'missing'
+      const stateLabel =
+        state === 'ambiguous'
+          ? '! Multiple supplied matches'
+          : state === 'missing'
+            ? '! Service not supplied'
+            : portMissing
+              ? '! Service port missing'
+              : '✓ Resolved'
+      const fallbackCommands = ingress
+        ? [
+            `kubectl get ingress ${shellArgument(ingress.name)} -n ${shellArgument(namespace)} -o yaml`,
+            `kubectl get service ${shellArgument(relationship.evidence.backendServiceName)} -n ${shellArgument(namespace)} -o yaml`,
+            `kubectl describe ingress ${shellArgument(ingress.name)} -n ${shellArgument(namespace)}`,
+          ]
+        : []
+      const verificationCommands = relatedDiagnostic?.verificationCommands.length
+        ? relatedDiagnostic.verificationCommands
+        : fallbackCommands
+
+      return (
+        <section aria-labelledby="inspector-title" className="inspector-panel result-group">
+          <div className="inspector-heading">
+            <div>
+              <p className="inspector-kicker">Relationship</p>
+              <h4 id="inspector-title" tabIndex={-1}>
+                Ingress routes to Service
+              </h4>
+            </div>
+            <span
+              className={`relationship-state-label ${portMissing ? 'issue-label-error' : `relationship-state-${state}`}`}
+            >
+              {stateLabel}
+            </span>
+          </div>
+          <p className="inspector-summary">{relationship.evidence.summary}</p>
+          <dl className="inspector-facts">
+            <div>
+              <dt>Certainty</dt>
+              <dd>Explicit reference in the supplied manifest</dd>
+            </div>
+            <div>
+              <dt>Backend Service</dt>
+              <dd>
+                <code>
+                  {namespace}/{relationship.evidence.backendServiceName}
+                </code>
+              </dd>
+            </div>
+            <div>
+              <dt>Backend port</dt>
+              <dd>
+                <code>{formatIngressBackendPort(relationship.evidence.backendPort)}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Evidence paths</dt>
+              <dd>{plural(relationship.evidence.routes.length, 'backend declaration')}</dd>
+            </div>
+            <div>
+              <dt>Port validation</dt>
+              <dd>
+                {relationship.evidence.portResolution === 'resolved'
+                  ? 'Declared on the supplied Service'
+                  : relationship.evidence.portResolution === 'missing'
+                    ? 'Not declared on the supplied Service'
+                    : relationship.evidence.portResolution === 'service-ambiguous'
+                      ? 'Not checked because the Service identity is ambiguous'
+                      : 'Not checked because the Service is not supplied'}
+              </dd>
+            </div>
+          </dl>
+          <p className="inspector-explanation">
+            Ingress Service backends resolve only inside the Ingress namespace. Named backends match{' '}
+            <code>spec.ports[].name</code>; numeric backends match <code>spec.ports[].port</code>,
+            not <code>targetPort</code>.
+          </p>
+          <div className="action-row mt-3">
+            {relationship.evidence.routes.map((route, index) =>
+              route.sourceRange ? (
+                <button
+                  aria-label={`View Ingress backend ${index + 1}: ${route.description}`}
+                  className="text-action"
+                  key={`${route.sourcePath}:${index}`}
+                  onClick={() => onJump(route.sourceRange!)}
+                  type="button"
+                >
+                  View backend {index + 1} <span aria-hidden="true">→</span>
+                </button>
+              ) : null,
+            )}
+            {relationship.evidence.targetRange ? (
+              <button
+                className="text-action"
+                onClick={() => onJump(relationship.evidence.targetRange!)}
+                type="button"
+              >
+                View Service <span aria-hidden="true">→</span>
+              </button>
+            ) : null}
+            {relationship.evidence.targetPortRange ? (
+              <button
+                className="text-action"
+                onClick={() => onJump(relationship.evidence.targetPortRange!)}
+                type="button"
+              >
+                View matched Service port <span aria-hidden="true">→</span>
+              </button>
+            ) : null}
+          </div>
+          {verificationCommands.length > 0 ? (
+            <div className="inspector-commands">
+              <h5>Verify in a cluster</h5>
+              <ul className="command-list">
+                {verificationCommands.map((command) => (
+                  <li key={command}>
+                    <code>{command}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      )
+    }
+
     const state = relationship.resolution.state
 
     return (
@@ -484,7 +646,11 @@ function Inspector({ analysis, selection, onInspectRelationship, onJump }: Inspe
             </h4>
           </div>
           <span className={`relationship-state-label relationship-state-${state}`}>
-            {state === 'resolved' ? '✓ Resolved' : '! No supplied match'}
+            {state === 'resolved'
+              ? '✓ Resolved'
+              : state === 'ambiguous'
+                ? '! Multiple supplied matches'
+                : '! No supplied match'}
           </span>
         </div>
         <p className="inspector-summary">{relationship.evidence.summary}</p>
