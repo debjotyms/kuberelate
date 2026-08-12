@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { BrandMark } from '@/components/brand-mark'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { product } from '@/config/product'
 import { WorkbenchLoader } from '@/features/workbench/workbench-loader'
 
@@ -57,6 +58,7 @@ export default function HomePage() {
             <a className="nav-link hidden sm:inline-flex" href="#privacy">
               Privacy
             </a>
+            <ThemeToggle />
             <a
               className="button-secondary ml-1"
               href={product.githubUrl}

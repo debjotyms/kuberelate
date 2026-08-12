@@ -35,6 +35,7 @@ import {
   selectSelectedDiagnosticId,
   selectSelectedRelationshipId,
   selectSelectedResourceId,
+  selectTheme,
   selectTopologyFocusRequest,
   useWorkbenchStore,
 } from '@/store/workbench-store'
@@ -237,6 +238,7 @@ function useReducedMotion(): boolean {
 }
 
 function TopologyCanvasInner({ graph }: TopologyCanvasProps) {
+  const theme = useWorkbenchStore(selectTheme)
   const direction = useWorkbenchStore(selectGraphDirection)
   const selectedResourceId = useWorkbenchStore(selectSelectedResourceId)
   const selectedRelationshipId = useWorkbenchStore(selectSelectedRelationshipId)
@@ -444,7 +446,7 @@ function TopologyCanvasInner({ graph }: TopologyCanvasProps) {
           'node.a11yDescription.keyboardDisabled': 'This topology item cannot be moved.',
         }}
         autoPanOnNodeFocus
-        colorMode="system"
+        colorMode={theme}
         deleteKeyCode={null}
         edgeTypes={edgeTypes}
         edges={edges}

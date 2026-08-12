@@ -47,3 +47,33 @@ test('has no automatically detectable accessibility violations in either color s
     expect(results.violations, `${colorScheme} color scheme`).toEqual([])
   }
 })
+
+test('toggles theme mode between light, dark, and system and persists preference', async ({
+  page,
+}) => {
+  await page.goto(appPath)
+
+  const lightButton = page.getByRole('button', { name: 'Light theme' })
+  const darkButton = page.getByRole('button', { name: 'Dark theme' })
+  const systemButton = page.getByRole('button', { name: 'System theme' })
+
+  await expect(lightButton).toBeVisible()
+  await expect(darkButton).toBeVisible()
+  await expect(systemButton).toBeVisible()
+
+  // Click Dark theme
+  await darkButton.click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+
+  // Reload page to verify persistence and no FOUC
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+
+  // Click Light theme
+  await lightButton.click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+
+  // Reload page again
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+})

@@ -10,6 +10,7 @@ import {
   selectSelectedDiagnosticId,
   selectSelectedRelationshipId,
   selectSelectedResourceId,
+  selectTheme,
   selectTopologyView,
   useWorkbenchStore,
 } from './workbench-store'
@@ -19,6 +20,7 @@ const resourceId = analyzeManifest(brokenServiceSelectorExample.source).resource
 describe('workbench interaction store', () => {
   beforeEach(() => {
     useWorkbenchStore.setState({
+      theme: 'system',
       topologyView: 'map',
       graphDirection: 'LR',
       layoutMode: 'split',
@@ -30,6 +32,7 @@ describe('workbench interaction store', () => {
       inspectorFocusToken: 0,
     })
     localStorage.clear()
+    delete document.documentElement.dataset.theme
   })
 
   it('keeps one selected inspector entity and advances the inspector focus token', () => {
@@ -85,17 +88,34 @@ describe('workbench interaction store', () => {
     expect(selectIsFullscreen(useWorkbenchStore.getState())).toBe(false)
   })
 
-  it('persists graph direction and layoutMode but no selection or manifest-shaped data', () => {
+  it('handles theme toggling and updates document element dataset', () => {
+    const store = useWorkbenchStore.getState()
+    expect(selectTheme(useWorkbenchStore.getState())).toBe('system')
+
+    store.setTheme('dark')
+    expect(selectTheme(useWorkbenchStore.getState())).toBe('dark')
+    expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(localStorage.getItem('kuberelate-theme')).toBe('dark')
+
+    store.setTheme('light')
+    expect(selectTheme(useWorkbenchStore.getState())).toBe('light')
+    expect(document.documentElement.dataset.theme).toBe('light')
+    expect(localStorage.getItem('kuberelate-theme')).toBe('light')
+  })
+
+  it('persists theme, graph direction, and layoutMode', () => {
     useWorkbenchStore.getState().inspectDiagnostic('diagnostic:test')
+    useWorkbenchStore.getState().setTheme('dark')
     useWorkbenchStore.getState().setGraphDirection('TB')
     useWorkbenchStore.getState().setLayoutMode('diagram')
 
+    expect(selectTheme(useWorkbenchStore.getState())).toBe('dark')
     expect(selectGraphDirection(useWorkbenchStore.getState())).toBe('TB')
     expect(selectLayoutMode(useWorkbenchStore.getState())).toBe('diagram')
     const persisted = localStorage.getItem('kuberelate-preferences')
     expect(persisted).not.toBeNull()
     expect(JSON.parse(persisted!)).toEqual({
-      state: { graphDirection: 'TB', layoutMode: 'diagram' },
+      state: { theme: 'dark', graphDirection: 'TB', layoutMode: 'diagram' },
       version: 0,
     })
   })

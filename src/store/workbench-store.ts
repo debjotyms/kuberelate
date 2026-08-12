@@ -6,6 +6,7 @@ import type { GraphDirection } from '@/graph/layout/dagre-layout'
 
 export type TopologyView = 'map' | 'list'
 export type WorkbenchLayoutMode = 'split' | 'diagram' | 'editor'
+export type ThemeMode = 'light' | 'dark' | 'system'
 
 export interface TopologyFocusRequest {
   readonly resourceId: ResourceId
@@ -13,6 +14,7 @@ export interface TopologyFocusRequest {
 }
 
 export interface WorkbenchInteractionState {
+  readonly theme: ThemeMode
   readonly topologyView: TopologyView
   readonly graphDirection: GraphDirection
   readonly layoutMode: WorkbenchLayoutMode
@@ -22,6 +24,7 @@ export interface WorkbenchInteractionState {
   readonly selectedDiagnosticId?: string
   readonly topologyFocusRequest?: TopologyFocusRequest
   readonly inspectorFocusToken: number
+  readonly setTheme: (theme: ThemeMode) => void
   readonly setTopologyView: (view: TopologyView) => void
   readonly setGraphDirection: (direction: GraphDirection) => void
   readonly setLayoutMode: (mode: WorkbenchLayoutMode) => void
@@ -41,14 +44,30 @@ const selectionReset = {
   topologyFocusRequest: undefined,
 } as const
 
+function applyDocumentTheme(theme: ThemeMode): void {
+  if (typeof window !== 'undefined') {
+    document.documentElement.dataset.theme = theme
+    try {
+      localStorage.setItem('kuberelate-theme', theme)
+    } catch {
+      // Ignore storage errors
+    }
+  }
+}
+
 export const useWorkbenchStore = create<WorkbenchInteractionState>()(
   persist(
     (set) => ({
+      theme: 'system',
       topologyView: 'map',
       graphDirection: 'LR',
       layoutMode: 'split',
       isFullscreen: false,
       inspectorFocusToken: 0,
+      setTheme: (theme) => {
+        applyDocumentTheme(theme)
+        set({ theme })
+      },
       setTopologyView: (topologyView) => set({ topologyView }),
       setGraphDirection: (graphDirection) => set({ graphDirection }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
@@ -95,6 +114,7 @@ export const useWorkbenchStore = create<WorkbenchInteractionState>()(
     {
       name: 'kuberelate-preferences',
       partialize: (state) => ({
+        theme: state.theme,
         graphDirection: state.graphDirection,
         layoutMode: state.layoutMode,
       }),
@@ -102,6 +122,7 @@ export const useWorkbenchStore = create<WorkbenchInteractionState>()(
   ),
 )
 
+export const selectTheme = (state: WorkbenchInteractionState) => state.theme
 export const selectTopologyView = (state: WorkbenchInteractionState) => state.topologyView
 export const selectGraphDirection = (state: WorkbenchInteractionState) => state.graphDirection
 export const selectLayoutMode = (state: WorkbenchInteractionState) => state.layoutMode

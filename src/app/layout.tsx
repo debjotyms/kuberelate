@@ -46,7 +46,14 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('kuberelate-theme');if(!t){var p=localStorage.getItem('kuberelate-preferences');if(p){var parsed=JSON.parse(p);if(parsed&&parsed.state&&parsed.state.theme){t=parsed.state.theme;}}}if(!t)t='system';document.documentElement.dataset.theme=t;}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   )

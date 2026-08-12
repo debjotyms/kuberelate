@@ -931,18 +931,31 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
           <label className="toolbar-label" htmlFor="manifest-example">
             Example
           </label>
-          <select
-            className="example-select"
-            id="manifest-example"
-            onChange={(event) => setSelectedExampleId(event.target.value)}
-            value={selectedExampleId}
-          >
-            {manifestExamples.map((example) => (
-              <option key={example.id} value={example.id}>
-                {example.name}
-              </option>
-            ))}
-          </select>
+          <div className="example-select-wrapper">
+            <select
+              className="example-select"
+              id="manifest-example"
+              onChange={(event) => setSelectedExampleId(event.target.value)}
+              value={selectedExampleId}
+            >
+              {manifestExamples.map((example) => (
+                <option key={example.id} value={example.id}>
+                  {example.name}
+                </option>
+              ))}
+            </select>
+            <span aria-hidden="true" className="example-select-arrow">
+              <svg
+                className="size-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                viewBox="0 0 24 24"
+              >
+                <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          </div>
           <p className="mt-1 max-w-xl text-xs text-muted">{selectedExample.description}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
