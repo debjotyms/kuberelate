@@ -497,13 +497,13 @@ button {
   text-transform: uppercase;
 }
 
-.example-select-wrapper {
+.custom-select-container {
   position: relative;
   display: inline-block;
   min-width: min(18rem, 100%);
 }
 
-.example-select,
+.custom-select-trigger,
 .toolbar-button {
   min-height: 2.75rem;
   border: 1px solid var(--kg-line);
@@ -513,40 +513,93 @@ button {
   font: inherit;
 }
 
-.example-select {
+.custom-select-trigger {
+  display: flex;
   width: 100%;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  padding: 0 2.5rem 0 0.85rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.85rem;
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
   transition:
     border-color 150ms ease,
-    background 150ms ease;
+    background 150ms ease,
+    box-shadow 150ms ease;
 }
 
-.example-select:hover:not(:disabled) {
+.custom-select-trigger:hover {
   border-color: var(--kg-brand);
   background: color-mix(in srgb, var(--kg-brand) 6%, var(--kg-surface));
 }
 
-.example-select-arrow {
+.custom-select-menu {
   position: absolute;
-  top: 50%;
-  right: 0.85rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--kg-muted);
-  pointer-events: none;
-  transform: translateY(-50%);
-  transition: color 150ms ease;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 90;
+  width: 100%;
+  max-height: 18rem;
+  overflow-y: auto;
+  border: 1px solid var(--kg-line);
+  border-radius: 0.75rem;
+  padding: 0.35rem;
+  background: var(--kg-surface);
+  box-shadow:
+    0 14px 36px color-mix(in srgb, #001a2d 18%, transparent),
+    0 0 0 1px color-mix(in srgb, #ffffff 12%, transparent) inset;
+  list-style: none;
+  animation: dropdownFadeIn 120ms ease-out;
 }
 
-.example-select-wrapper:hover .example-select-arrow {
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-select-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
   color: var(--kg-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+  user-select: none;
+}
+
+.custom-select-option.is-selected {
+  font-weight: 750;
+  color: var(--kg-brand-strong);
+}
+
+.custom-select-option:hover,
+.custom-select-option.is-focused {
+  background: var(--kg-surface-muted);
+  color: var(--kg-ink);
+}
+
+.custom-select-check {
+  display: inline-grid;
+  width: 1.1rem;
+  height: 1.1rem;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--kg-brand-strong);
+  font-size: 0.85rem;
+  font-weight: 900;
 }
 
 .toolbar-button {

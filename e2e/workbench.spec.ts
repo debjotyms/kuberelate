@@ -84,7 +84,8 @@ test('shows a working selector in the map and equivalent relationship list', asy
   await page.goto(appPath)
 
   const workbench = page.locator('#workbench')
-  await workbench.getByLabel('Example').selectOption('working-service-selector')
+  await workbench.getByRole('combobox', { name: 'Example' }).click()
+  await workbench.getByRole('option', { name: 'Working Service selector' }).click()
   await workbench.getByRole('button', { name: 'Load example' }).click()
 
   await expect(workbench.locator('[data-analysis-status="valid"]')).toBeVisible()
@@ -125,7 +126,8 @@ test('explains a missing Ingress Service through topology, inspector, list, and 
 
   const workbench = page.locator('#workbench')
   const editor = workbench.getByRole('textbox', { name: 'Kubernetes YAML manifest editor' })
-  await workbench.getByLabel('Example').selectOption('missing-ingress-service')
+  await workbench.getByRole('combobox', { name: 'Example' }).click()
+  await workbench.getByRole('option', { name: 'Missing Ingress Service' }).click()
   await workbench.getByRole('button', { name: 'Load example' }).click()
 
   await expect(workbench.locator('[data-analysis-status="partial"]')).toBeVisible()
@@ -159,7 +161,8 @@ test('keeps the resource inventory example available', async ({ page }) => {
   await page.goto(appPath)
 
   const workbench = page.locator('#workbench')
-  await workbench.getByLabel('Example').selectOption('resource-inventory')
+  await workbench.getByRole('combobox', { name: 'Example' }).click()
+  await workbench.getByRole('option', { name: 'Resource inventory' }).click()
   await workbench.getByRole('button', { name: 'Load example' }).click()
 
   await expect(workbench.locator('[data-analysis-status="valid"]')).toBeVisible()

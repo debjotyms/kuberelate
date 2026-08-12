@@ -84,7 +84,8 @@ describe('ManifestWorkbench', () => {
     const user = userEvent.setup()
     const { container } = render(<ManifestWorkbench />)
 
-    await user.selectOptions(screen.getByLabelText('Example'), 'working-service-selector')
+    await user.click(screen.getByRole('combobox', { name: 'Example' }))
+    await user.click(screen.getByRole('option', { name: 'Working Service selector' }))
     await user.click(screen.getByRole('button', { name: 'Load example' }))
     await waitFor(() => {
       expect(container.querySelector('[data-analysis-status="valid"]')).toBeInTheDocument()
