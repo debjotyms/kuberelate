@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     description: product.description,
     siteName: product.name,
-    title: `${product.name} — ${product.tagline}`,
+    title: `${product.name} - ${product.tagline}`,
     type: 'website',
     url: product.siteUrl,
   },
@@ -22,13 +22,13 @@ export const metadata: Metadata = {
     index: true,
   },
   title: {
-    default: `${product.name} — ${product.tagline}`,
+    default: `${product.name} - ${product.tagline}`,
     template: `%s · ${product.name}`,
   },
   twitter: {
     card: 'summary',
     description: product.description,
-    title: `${product.name} — ${product.tagline}`,
+    title: `${product.name} - ${product.tagline}`,
   },
 }
 

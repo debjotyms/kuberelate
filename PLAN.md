@@ -723,7 +723,7 @@ Target WCAG 2.2 AA for the public V1 experience.
 
 ## 10. Version Roadmap
 
-### V0 — Product foundation
+### V0 - Product foundation
 
 **Scope:** scaffold, static shell, design tokens, editor, parser, source positions, normalization, effective scope, resource list, unknown kinds, parse errors, and CI/CD.
 
@@ -733,7 +733,7 @@ Target WCAG 2.2 AA for the public V1 experience.
 
 **Exit criteria:** multi-document input cannot crash the app; valid resources and parser errors are listed with source positions; unknown kinds remain visible; all push checks and main deployment work.
 
-### V1 — Public core
+### V1 - Public core
 
 **Scope:** five production-quality vertical slices, interactive topology, diagnostics, resource/edge inspector, examples, deterministic explanation, privacy copy, responsive tabs, and accessibility baseline.
 
@@ -743,7 +743,7 @@ Target WCAG 2.2 AA for the public V1 experience.
 
 **Exit criteria:** all V1 success criteria in the brief pass; no P0/P1 defects; CI is green; supported relationships and limitations are documented; production artifact contains no prohibited legacy branding or manifest telemetry.
 
-### V1.1 — Polish and measured hardening
+### V1.1 - Polish and measured hardening
 
 **Scope:** filters, search, stronger namespace grouping, Ingress TLS Secret relationship, shareable example URLs, improved layout, optional panel resizing, docs/examples gallery, and measured performance work.
 
@@ -751,7 +751,7 @@ Target WCAG 2.2 AA for the public V1 experience.
 
 **Exit criteria:** useful behavior with approximately 100 supplied resources on supported hardware; filters/list remain accessible; release browser matrix passes.
 
-### V2 — CKA troubleshooting edition
+### V2 - CKA troubleshooting edition
 
 **Resource support:** StatefulSet, DaemonSet, Job, CronJob, HPA, PersistentVolume, StorageClass, NetworkPolicy.
 
@@ -761,13 +761,13 @@ Target WCAG 2.2 AA for the public V1 experience.
 
 **Exit criteria:** each scenario contains evidence, a visual/text path, cluster verification commands, limitations, fixtures, and at least one E2E flow.
 
-### V2.5 — Advanced relationships
+### V2.5 - Advanced relationships
 
 **Scope:** richer NetworkPolicy selection/peer views, RBAC permission summaries with explicit boundaries, dependency focus mode, namespace isolation view, topology search, and scale-oriented graph controls.
 
 **Exit criteria:** advanced claims have documented Kubernetes assumptions and adversarial fixtures; graph remains usable and list view remains complete.
 
-### V3 — Policy visualization
+### V3 - Policy visualization
 
 **Scope:** Kyverno Policy, ClusterPolicy, ValidatingPolicy, MutatingPolicy, PolicyReport, and ClusterPolicyReport adapters.
 
@@ -775,7 +775,7 @@ Target WCAG 2.2 AA for the public V1 experience.
 
 **Exit criteria:** policy adapters are isolated, generic resources still work without them, and V1 relationship/diagnostic tests remain unchanged and green.
 
-### Optional V4 — Extensions
+### Optional V4 - Extensions
 
 Evaluate Gateway API, rendered Helm/Kustomize input, custom schema adapters, graph/document export, manifest-set diffing, and optional local-only assistance. Each requires a separate product decision; none is pre-committed.
 
@@ -785,7 +785,7 @@ Evaluate Gateway API, rendered Helm/Kustomize input, custom schema adapters, gra
 
 Each phase ends in a reviewable, deployable state. Tests and documentation are part of the phase, not cleanup work after it.
 
-### Phase 0 — Planning baseline
+### Phase 0 - Planning baseline
 
 **Objective:** remove product ambiguity before code.
 
@@ -801,7 +801,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** this plan and the living checklist are committed and accepted.
 
-### Phase 1 — Scaffold, quality gates, and continuous deployment
+### Phase 1 - Scaffold, quality gates, and continuous deployment
 
 **Objective:** create the smallest reproducible Next.js static project and prove every push is verified.
 
@@ -828,7 +828,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** a private push runs all verification jobs; a deliberately failing test blocks downstream jobs; after public release, a green `main` run publishes the exact tested artifact.
 
-### Phase 2 — Design foundation, YAML editor, and V0 parser
+### Phase 2 - Design foundation, YAML editor, and V0 parser
 
 **Objective:** deliver “YAML to source-aware resource list” without a graph.
 
@@ -852,7 +852,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** the V0 exit criteria pass in unit, component, E2E, keyboard, and production-export testing.
 
-### Phase 3 — First vertical slice: Service to workload
+### Phase 3 - First vertical slice: Service to workload
 
 **Objective:** prove the entire product architecture with one polished Kubernetes problem.
 
@@ -875,7 +875,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** the exact flow in section 12 works, is accessible, survives malformed neighboring YAML, and passes CI.
 
-### Phase 4 — General topology and interaction hardening
+### Phase 4 - General topology and interaction hardening
 
 **Objective:** make the graph infrastructure reusable before adding relationship categories.
 
@@ -894,7 +894,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** adding a new relationship rule requires no topology component rewrite.
 
-### Phase 5 — Ingress vertical slice
+### Phase 5 - Ingress vertical slice
 
 **Status:** Complete (2026-08-11).
 
@@ -913,9 +913,9 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Tests required:** default backend, multiple hosts/paths, named port, numeric port, missing Service, missing port, same Service name in two namespaces, duplicate Services, resource backend, and E2E issue-to-source navigation.
 
-**Complete when:** all three expected Ingress states—valid, missing Service, missing port—are deterministic and explained accurately.
+**Complete when:** all three expected Ingress states - valid, missing Service, missing port - are deterministic and explained accurately.
 
-### Phase 6 — Configuration, Secret, and storage vertical slice
+### Phase 6 - Configuration, Secret, and storage vertical slice
 
 **Objective:** cover the common Pod-spec dependency paths once and reuse them.
 
@@ -937,7 +937,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** one new supported workload kind can reuse these extractors without duplicating field traversal.
 
-### Phase 7 — Identity and RBAC showcase slice
+### Phase 7 - Identity and RBAC showcase slice
 
 **Objective:** make Pod/Workload to ServiceAccount to binding to role relationships a flagship feature without claiming full authorization simulation.
 
@@ -957,7 +957,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** the graph and text view accurately explain both `RoleBinding -> ClusterRole` and namespaced permission scope.
 
-### Phase 8 — Explanations, examples, responsive UX, and documentation
+### Phase 8 - Explanations, examples, responsive UX, and documentation
 
 **Objective:** turn correct analysis into a coherent public learning product.
 
@@ -978,7 +978,7 @@ Each phase ends in a reviewable, deployable state. Tests and documentation are p
 
 **Complete when:** a first-time user can understand the purpose and run the primary flow without external guidance.
 
-### Phase 9 — V1 hardening and public release
+### Phase 9 - V1 hardening and public release
 
 **Objective:** close production, privacy, performance, accessibility, and repository-quality gaps.
 
@@ -1242,7 +1242,7 @@ A Web Worker is a V1.1 contingency. Add it only if 100-resource interaction or p
 
 ### Content Security Policy
 
-Use the strictest static-compatible policy the deployed host supports: self-hosted scripts/styles/assets, no objects, restricted base/form targets, and same-origin-only connections needed for static Next.js navigation. GitHub Pages does not provide arbitrary response headers, so any meta-policy limitations—especially framing controls—must be documented. Do not weaken the policy to accommodate analytics or remote fonts in V1.
+Use the strictest static-compatible policy the deployed host supports: self-hosted scripts/styles/assets, no objects, restricted base/form targets, and same-origin-only connections needed for static Next.js navigation. GitHub Pages does not provide arbitrary response headers, so any meta-policy limitations - especially framing controls - must be documented. Do not weaken the policy to accommodate analytics or remote fonts in V1.
 
 ### Secret behavior
 
@@ -1282,52 +1282,52 @@ An external community or portfolio site may link to KubeRelate later without cha
 
 ## 17. Development Milestones
 
-### Milestone 0 — Plan established
+### Milestone 0 - Plan established
 
 **Outcome:** architecture, stack, scope, CI/CD, roadmap, risks, and checklist exist.
 **Gate:** no unresolved decision blocks scaffolding.
 
-### Milestone 1 — Foundation and CI/CD
+### Milestone 1 - Foundation and CI/CD
 
 **Outcome:** a static KubeRelate shell, reproducible toolchain, test foundation, and gated Pages workflow exist.
 **Gate:** the local Node 24 gate passes, every push is tested, and a green `main` revision deploys the tested artifact.
 
-### Milestone 2 — YAML to resource list
+### Milestone 2 - YAML to resource list
 
 **Outcome:** editor, multi-document parser, normalized identities, source locations, generic unknown kinds, and parser diagnostics.
 **Gate:** V0 tests and the production Pages pipeline are green.
 
-### Milestone 3 — Service to Deployment/Pod analysis
+### Milestone 3 - Service to Deployment/Pod analysis
 
 **Outcome:** namespace-aware selector inference, mismatch diagnostic, evidence, commands, source jumps, working/broken examples.
 **Gate:** section 12 acceptance flow passes locally and in CI.
 
-### Milestone 4 — Interactive topology
+### Milestone 4 - Interactive topology
 
 **Outcome:** graph and text relationship views, reusable adapter/layout, inspector, keyboard interaction, mobile fallback.
 **Gate:** a new relationship type can be rendered without topology refactoring.
 
-### Milestone 5 — Core traffic/configuration/storage diagnostics
+### Milestone 5 - Core traffic/configuration/storage diagnostics
 
 **Outcome:** Ingress to Service/port and workload to ConfigMap/Secret/PVC relationships with examples and safe evidence.
 **Gate:** supported field-path matrix and all missing/valid states are covered.
 
-### Milestone 6 — Identity and RBAC
+### Milestone 6 - Identity and RBAC
 
 **Outcome:** workload to ServiceAccount to binding to Role/ClusterRole chains and accurate scope explanations.
 **Gate:** RoleBinding-to-ClusterRole and ClusterRoleBinding cases pass adversarial namespace fixtures.
 
-### Milestone 7 — Public V1 candidate
+### Milestone 7 - Public V1 candidate
 
 **Outcome:** deterministic architecture explanation, six examples, docs/README, responsive workbench, accessibility and privacy hardening.
 **Gate:** complete release checklist with no open P0/P1 issue.
 
-### Milestone 8 — V1.1 polish
+### Milestone 8 - V1.1 polish
 
 **Outcome:** measured layout, filtering, search, namespace grouping, docs gallery, and 100-resource usability improvements.
 **Gate:** performance/accessibility targets pass without weakening V1 correctness.
 
-### Milestone 9 — V2 CKA mode
+### Milestone 9 - V2 CKA mode
 
 **Outcome:** expanded workloads/storage/networking and guided troubleshooting mode.
 **Gate:** every scenario is driven by the common analysis model and has fixtures/E2E coverage.
@@ -1465,4 +1465,4 @@ This preserves a clean path to policy visualization while keeping the initial an
 
 ### Scope rule
 
-When a proposed task does not directly satisfy the current milestone exit criteria, put it in the roadmap rather than the active sprint. Finish one vertical slice—including tests, accessibility, content, and deployment—before opening the next.
+When a proposed task does not directly satisfy the current milestone exit criteria, put it in the roadmap rather than the active sprint. Finish one vertical slice - including tests, accessibility, content, and deployment - before opening the next.

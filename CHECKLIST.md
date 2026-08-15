@@ -1,7 +1,7 @@
 # KubeRelate Delivery Checklist
 
 > Current state: Milestone 5 Ingress-to-Service slice complete; reusable Pod-spec traversal next
-> Active milestone: **Milestone 5 — Ingress, configuration, Secret, and storage**
+> Active milestone: **Milestone 5 - Ingress, configuration, Secret, and storage**
 > Detailed rationale and architecture: [PLAN.md](./PLAN.md)
 
 ## How to use this tracker
@@ -18,11 +18,11 @@ Status convention:
 
 - `[x]` complete and evidenced
 - `[ ]` not complete
-- `N/A — reason` intentionally not applicable
+- `N/A - reason` intentionally not applicable
 
 ---
 
-## Milestone 0 — Planning baseline
+## Milestone 0 - Planning baseline
 
 **Outcome:** KubeRelate has an implementation-ready product, architecture, test, and release plan.
 
@@ -45,7 +45,7 @@ Status convention:
 
 ---
 
-## Milestone 1 — Foundation and CI/CD
+## Milestone 1 - Foundation and CI/CD
 
 **Outcome:** a minimal static site is tested on every push and deployed only after passing checks.
 
@@ -120,7 +120,7 @@ The `Quality`, `Static export`, and `Chromium smoke` checks run on every push an
 
 ---
 
-## Milestone 2 — YAML to resource list (V0)
+## Milestone 2 - YAML to resource list (V0)
 
 **Outcome:** users can paste multi-document YAML and inspect source-aware normalized resources without crashes.
 
@@ -203,7 +203,7 @@ V0 bundle measurement (2026-08-10): the lazy analyzer/editor chunk is approximat
 
 ---
 
-## Milestone 3 — Service selector vertical slice
+## Milestone 3 - Service selector vertical slice
 
 **Outcome:** KubeRelate explains valid and broken Service-to-Pod/Deployment-template selection end to end.
 
@@ -234,7 +234,7 @@ V0 bundle measurement (2026-08-10): the lazy analyzer/editor chunk is approximat
 
 - [x] Show Service and workload resources.
 - [x] Show resolved inferred connection or a non-resource unresolved placeholder.
-- [x] Use icon/text/style—not color alone—for status and certainty.
+- [x] Use icon/text/style - not color alone - for status and certainty.
 - [x] Jump from issue to topology node and Service selector source.
 - [x] Jump to comparison Pod-template labels where useful.
 - [x] Add resource and relationship inspector basics.
@@ -274,7 +274,7 @@ investigation threshold. The complete static export remains approximately 1.4 Mi
 
 ---
 
-## Milestone 4 — Reusable interactive topology
+## Milestone 4 - Reusable interactive topology
 
 **Outcome:** topology infrastructure supports future rules without component rewrites.
 
@@ -313,7 +313,7 @@ the initial HTML. The complete `/kuberelate` static export is approximately 1.8 
 
 ---
 
-## Milestone 5 — Ingress, configuration, Secret, and storage
+## Milestone 5 - Ingress, configuration, Secret, and storage
 
 **Outcome:** core traffic and workload dependencies are resolved and explained safely.
 
@@ -357,7 +357,7 @@ built-in examples (2,711 source bytes) across 1,500 warmed samples with a 0.205 
 
 ---
 
-## Milestone 6 — ServiceAccount and RBAC showcase
+## Milestone 6 - ServiceAccount and RBAC showcase
 
 **Outcome:** users can understand workload identity and binding-to-role chains without false permission claims.
 
@@ -382,7 +382,7 @@ built-in examples (2,711 source bytes) across 1,500 warmed samples with a 0.205 
 
 ---
 
-## Milestone 7 — Public V1 product finish
+## Milestone 7 - Public V1 product finish
 
 **Outcome:** the correct analyzer becomes a coherent, accessible, responsive, documented public tool.
 
@@ -494,7 +494,7 @@ built-in examples (2,711 source bytes) across 1,500 warmed samples with a 0.205 
 
 ---
 
-## Milestone 8 — V1.1 polish (locked until V1 release)
+## Milestone 8 - V1.1 polish (locked until V1 release)
 
 - [ ] Improve graph layout from measured usability issues.
 - [ ] Add stronger namespace grouping.
@@ -508,7 +508,7 @@ built-in examples (2,711 source bytes) across 1,500 warmed samples with a 0.205 
 
 ---
 
-## V2 — CKA troubleshooting edition (locked until V1.1 gate)
+## V2 - CKA troubleshooting edition (locked until V1.1 gate)
 
 - [ ] Add StatefulSet Pod-template adapter.
 - [ ] Add DaemonSet Pod-template adapter.
@@ -523,7 +523,7 @@ built-in examples (2,711 source bytes) across 1,500 warmed samples with a 0.205 
 
 ---
 
-## V2.5 — Advanced relationships (locked until V2 release)
+## V2.5 - Advanced relationships (locked until V2 release)
 
 - [ ] Richer NetworkPolicy peer visualization with conservative claims.
 - [ ] Bounded RBAC permission summaries.
@@ -533,7 +533,7 @@ built-in examples (2,711 source bytes) across 1,500 warmed samples with a 0.205 
 
 ---
 
-## V3 — Kyverno policy visualization (locked until core product maturity)
+## V3 - Kyverno policy visualization (locked until core product maturity)
 
 - [ ] Add isolated Kyverno resource adapters.
 - [ ] Add policy-rule virtual analysis entities.
