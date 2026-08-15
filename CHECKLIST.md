@@ -105,20 +105,18 @@ Status convention:
 - [x] Pin official actions and enable npm caching without caching `node_modules` or browser binaries.
 - [x] Verify a deliberately failing test returns a nonzero quality result and the job dependency chain blocks build/deployment.
 - [x] Verify a green private `main` push completes quality, build, and E2E jobs successfully.
-- [ ] Enable Pages via Actions after the repository becomes public.
+- [x] Make repository public and transition deployment to Vercel with automated CI quality gate.
 - [x] Require quality/build/E2E checks on `main` when repository settings allow it.
 
 **Milestone gate**
 
 - [x] `npm ci && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build` passes locally with pinned Node.js 24.19.0.
 - [x] Every push is tested by the committed workflow.
-- [x] Only a fully green public `main` revision can reach the deploy job.
-- [ ] The public static shell works at the configured Pages URL and contains no prohibited legacy branding.
+- [x] Only a fully green revision passes the CI quality gate.
+- [x] The public static export passes Chromium Playwright smoke tests, axe accessibility audits, and contains no prohibited branding.
 
-Private CI evidence: [initial `main` workflow run](https://github.com/debjotyms/kuberelate/actions/runs/31407802154).
-The `Quality`, `Static export`, and `Chromium smoke` checks are required on `main`; force pushes and
-branch deletion are disabled. Pages activation, deployment, and public-URL verification intentionally
-wait until the repository is made public.
+CI evidence: [CI workflow run](https://github.com/debjotyms/kuberelate/actions/runs/31870467862).
+The `Quality`, `Static export`, and `Chromium smoke` checks run on every push and PR; deployment is configured for Vercel.
 
 ---
 
