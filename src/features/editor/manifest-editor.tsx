@@ -73,7 +73,7 @@ const editorTheme = EditorView.theme({
   '.cm-gutters': {
     backgroundColor: 'color-mix(in srgb, var(--kg-code) 95%, black)',
     borderRight: '1px solid color-mix(in srgb, var(--kg-line) 20%, transparent)',
-    color: '#5c7e99',
+    color: '#9bb4c6',
     paddingLeft: '0.25rem',
   },
   '.cm-gutterElement': {
