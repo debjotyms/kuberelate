@@ -97,7 +97,11 @@ const editorTheme = EditorView.theme({
 })
 
 const manifestHighlightStyle = HighlightStyle.define([
-  { tag: [tags.propertyName, tags.attributeName, tags.typeName], color: '#7dd3fc', fontWeight: '600' },
+  {
+    tag: [tags.propertyName, tags.attributeName, tags.typeName],
+    color: '#7dd3fc',
+    fontWeight: '600',
+  },
   { tag: [tags.string, tags.special(tags.string)], color: '#a7f3d0' },
   { tag: [tags.atom, tags.bool, tags.null, tags.number], color: '#fde047' },
   { tag: tags.comment, color: '#64748b', fontStyle: 'italic' },

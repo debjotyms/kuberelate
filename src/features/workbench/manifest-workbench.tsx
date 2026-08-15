@@ -1041,15 +1041,24 @@ export function ManifestWorkbench({ initialSource = '' }: ManifestWorkbenchProps
             <span>Paste one or more documents.</span>
             <span className="inline-flex flex-wrap items-center gap-2 text-[0.72rem] opacity-90">
               <span className="inline-flex items-center gap-1">
-                <kbd className="rounded border border-white/15 bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-white/90">Ctrl/⌘+F</kbd> search
+                <kbd className="rounded border border-white/15 bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-white/90">
+                  Ctrl/⌘+F
+                </kbd>{' '}
+                search
               </span>
               <span>•</span>
               <span className="inline-flex items-center gap-1">
-                <kbd className="rounded border border-white/15 bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-white/90">Ctrl/⌘+Z</kbd> undo
+                <kbd className="rounded border border-white/15 bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-white/90">
+                  Ctrl/⌘+Z
+                </kbd>{' '}
+                undo
               </span>
               <span>•</span>
               <span className="inline-flex items-center gap-1">
-                <kbd className="rounded border border-white/15 bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-white/90">Tab</kbd> exit editor
+                <kbd className="rounded border border-white/15 bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-white/90">
+                  Tab
+                </kbd>{' '}
+                exit editor
               </span>
             </span>
           </p>
