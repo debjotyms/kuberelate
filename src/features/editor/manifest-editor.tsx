@@ -46,29 +46,38 @@ const editorTheme = EditorView.theme({
     fontSize: '0.875rem',
   },
   '&.cm-focused': {
-    outline: '3px solid color-mix(in srgb, var(--kg-focus) 48%, transparent)',
-    outlineOffset: '-3px',
+    outline: '2px solid color-mix(in srgb, var(--kg-brand) 65%, transparent)',
+    outlineOffset: '-2px',
   },
   '.cm-activeLine': {
-    backgroundColor: 'color-mix(in srgb, var(--kg-brand) 11%, transparent)',
+    backgroundColor: 'color-mix(in srgb, var(--kg-brand) 8%, transparent)',
   },
   '.cm-activeLineGutter': {
-    backgroundColor: 'color-mix(in srgb, var(--kg-brand) 11%, transparent)',
-    color: '#d9efff',
+    backgroundColor: 'color-mix(in srgb, var(--kg-brand) 14%, transparent)',
+    color: '#ffffff',
+    fontWeight: '700',
   },
   '.cm-content': {
     caretColor: 'var(--kg-brand-strong)',
     fontFamily: 'var(--kg-font-mono)',
-    lineHeight: '1.55rem',
+    lineHeight: '1.6',
     padding: '0.75rem 0',
+  },
+  '.cm-line': {
+    padding: '0 0.85rem',
   },
   '.cm-cursor, .cm-dropCursor': {
     borderLeftColor: 'var(--kg-brand-strong)',
+    borderLeftWidth: '2px',
   },
   '.cm-gutters': {
-    backgroundColor: 'color-mix(in srgb, var(--kg-code) 86%, black)',
-    borderRight: '1px solid var(--kg-line)',
-    color: '#9bb4c6',
+    backgroundColor: 'color-mix(in srgb, var(--kg-code) 95%, black)',
+    borderRight: '1px solid color-mix(in srgb, var(--kg-line) 20%, transparent)',
+    color: '#5c7e99',
+    paddingLeft: '0.25rem',
+  },
+  '.cm-gutterElement': {
+    padding: '0 0.6rem 0 0.4rem',
   },
   '.cm-lintRange-error': {
     backgroundImage:
@@ -83,16 +92,16 @@ const editorTheme = EditorView.theme({
     overflow: 'auto',
   },
   '.cm-selectionBackground, ::selection': {
-    backgroundColor: 'color-mix(in srgb, var(--kg-brand) 35%, transparent) !important',
+    backgroundColor: 'color-mix(in srgb, var(--kg-brand) 30%, transparent) !important',
   },
 })
 
 const manifestHighlightStyle = HighlightStyle.define([
-  { tag: [tags.propertyName, tags.attributeName, tags.typeName], color: '#93eaff' },
-  { tag: [tags.string, tags.special(tags.string)], color: '#a8e6c1' },
-  { tag: [tags.atom, tags.bool, tags.null, tags.number], color: '#ffc77d' },
-  { tag: tags.comment, color: '#b3c9d9', fontStyle: 'italic' },
-  { tag: tags.invalid, color: '#ff8293' },
+  { tag: [tags.propertyName, tags.attributeName, tags.typeName], color: '#7dd3fc', fontWeight: '600' },
+  { tag: [tags.string, tags.special(tags.string)], color: '#a7f3d0' },
+  { tag: [tags.atom, tags.bool, tags.null, tags.number], color: '#fde047' },
+  { tag: tags.comment, color: '#64748b', fontStyle: 'italic' },
+  { tag: tags.invalid, color: '#f87171' },
 ])
 
 function toEditorDiagnostics(
