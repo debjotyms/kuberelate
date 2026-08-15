@@ -2,7 +2,7 @@
 
 **See how your Kubernetes manifests connect.**
 
-[![CI / Pages](https://github.com/debjotyms/kuberelate/actions/workflows/ci.yml/badge.svg)](https://github.com/debjotyms/kuberelate/actions/workflows/ci.yml)
+[![CI](https://github.com/debjotyms/kuberelate/actions/workflows/ci.yml/badge.svg)](https://github.com/debjotyms/kuberelate/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-2ea44f.svg)](./LICENSE)
 
 KubeRelate is a privacy-first, browser-based Kubernetes manifest relationship analyzer and
@@ -127,26 +127,24 @@ Open `http://localhost:3000`.
 | `npm run measure:analyzer` | Measure the analyzer against all built-in examples            |
 | `npm run check:brand`      | Scan shipped source and output for prohibited legacy branding |
 
-To reproduce the GitHub project Pages path locally:
+## CI/CD and deployment
 
-```bash
-NEXT_PUBLIC_BASE_PATH=/kuberelate npm run build
-NEXT_PUBLIC_BASE_PATH=/kuberelate npm run test:e2e:artifact
-```
+The repository uses GitHub Actions for continuous integration and is designed to deploy seamlessly on [Vercel](https://vercel.com).
 
-## CI/CD model
+### CI workflow
 
-The production build uses `output: 'export'` and does not require a Node.js server. The workflow is
-kept intentionally small and inspectable:
+1. `quality` runs formatting, linting, type checks, test coverage, and the brand guard.
+2. `build` creates the Next.js static export.
+3. `e2e-smoke` extracts and tests that exact export in Chromium with Playwright and axe accessibility checks.
 
-1. `quality` runs formatting, linting, type checks, coverage, and the brand guard.
-2. `build` creates the `/kuberelate` static export and packages it once.
-3. `e2e-smoke` extracts and tests that exact Pages artifact in Chromium.
-4. `deploy` publishes the tested artifact only from a fully green public-repository run on `main`.
+### Vercel deployment
 
-Deployment is intentionally skipped while the repository is private. When the project becomes
-public, enable **GitHub Actions** under **Settings → Pages → Build and deployment → Source**, then
-run the workflow from `main`.
+Connect the repository to Vercel with zero configuration:
+
+- Framework Preset: **Next.js**
+- Build Command: `npm run build`
+- Output Directory: `out` (or Next.js default)
+- Automatic preview deployments for pull requests and instant production deployment on `main`.
 
 ## Contributing
 
